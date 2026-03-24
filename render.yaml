@@ -1,0 +1,20 @@
+services:
+  # Backend Python API
+  - type: web
+    name: edugen-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      - key: PORT
+        value: 8000
+    plan: free
+
+  # Frontend React App  
+  - type: web
+    name: edugen-frontend
+    env: docker
+    dockerfilePath: ./frontend/Dockerfile
+    envVars:
+      - key: VITE_API_URL # Needed if we change the frontend to use env vars
+        value: https://edugen-backend.onrender.com 
+    plan: free

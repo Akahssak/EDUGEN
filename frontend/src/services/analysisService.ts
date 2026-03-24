@@ -1,7 +1,7 @@
 import { AnalyzeRequest, AiAction } from '../types';
 
 export const analyzeRegion = async (request: AnalyzeRequest): Promise<AiAction> => {
-    const response = await fetch('http://localhost:8000/api/analyze-notes', {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/analyze-notes`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

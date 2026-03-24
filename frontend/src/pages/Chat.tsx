@@ -139,8 +139,8 @@ export default function Chat() {
         const fetchData = async () => {
             try {
                 const [wsRes, profRes] = await Promise.all([
-                    axios.get(`http://localhost:8001/api/workspaces/${user.id}`),
-                    axios.get(`http://localhost:8001/api/profile/${user.id}`)
+                    axios.get(`${import.meta.env.VITE_API_URL}/api/workspaces/${user.id}`),
+                    axios.get(`${import.meta.env.VITE_API_URL}/api/profile/${user.id}`)
                 ]);
                 setWorkspaces(wsRes.data);
                 setProfile(profRes.data);
@@ -152,7 +152,7 @@ export default function Chat() {
     const handleCreateWorkspace = async () => {
         if (!newWsName.trim()) return;
         try {
-            const res = await axios.post('http://localhost:8001/api/workspaces/create', {
+            const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/workspaces/create`, {
                 user_id: user.id.toString(),
                 name: newWsName
             });
@@ -166,14 +166,14 @@ export default function Chat() {
         e.stopPropagation(); // don't open the workspace
         if (!window.confirm(`Delete workspace "${ws.name}"?\n\nThis will permanently remove all canvas data, pages, and diagrams stored in this workspace.`)) return;
         try {
-            await axios.delete(`http://localhost:8001/api/workspaces/${ws.id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL}/api/workspaces/${ws.id}`);
             setWorkspaces(prev => prev.filter(w => w.id !== ws.id));
         } catch (err) { console.error("Workspace deletion failed", err); alert('Failed to delete workspace. Make sure the backend is running.'); }
     };
 
     const handleUpdateProfile = async () => {
         try {
-            await axios.post('http://localhost:8001/api/profile/update', {
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/profile/update`, {
                 user_id: user.id,
                 ...profile
             });
@@ -198,7 +198,7 @@ export default function Chat() {
             if (!currentWs || !editor) return;
             const pageId = editor.getCurrentPageId();
             try {
-                const res = await axios.get(`http://localhost:8001/api/material/latest/${currentWs.id}/${pageId}`);
+                const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/material/latest/${currentWs.id}/${pageId}`);
                 if (res.data.status === 'success') {
                     setUploadedFileContent(res.data.content);
                     setMaterialMetadata({ name: res.data.filename, chunks: res.data.chunks_indexed });
@@ -239,7 +239,7 @@ export default function Chat() {
         formData.append('page_id', pageId);
         formData.append('file', file);
         try {
-            const res = await axios.post('http://localhost:8001/api/upload', formData, {
+            const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/upload`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setHasMaterial(true);
@@ -280,7 +280,7 @@ export default function Chat() {
             .join("\n");
 
         try {
-            const response = await axios.post('http://localhost:8001/chat', {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/chat`, {
                 message: text,
                 session_id: sessionId,
                 user_id: user.id,
@@ -546,7 +546,7 @@ export default function Chat() {
         setCanvasLoadError(false);
         const loadCanvas = async () => {
             try {
-                const response = await axios.get(`http://localhost:8001/api/canvas/load/${currentWs.id}`);
+                const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/canvas/load/${currentWs.id}`);
                 if (response.data.data) {
                     const snapshot = JSON.parse(response.data.data);
                     editor.loadSnapshot(snapshot);
@@ -577,7 +577,7 @@ export default function Chat() {
         const saveCanvas = async () => {
             try {
                 const snapshot = editor.getSnapshot();
-                await axios.post('http://localhost:8001/api/canvas/save', {
+                await axios.post(`${import.meta.env.VITE_API_URL}/api/canvas/save`, {
                     workspace_id: currentWs.id,
                     data: JSON.stringify(snapshot)
                 });

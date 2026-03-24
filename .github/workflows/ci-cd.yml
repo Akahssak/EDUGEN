@@ -1,0 +1,38 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install Docker Compose
+        run: sudo apt-get update && sudo apt-get install -y docker-compose
+
+      - name: Build and Start Services
+        run: docker-compose up -d --build
+
+      - name: Wait for services to be ready
+        run: sleep 15
+
+      - name: Test backend API availability
+        run: |
+          curl -f http://localhost:8000/docs || exit 1
+
+      - name: Test frontend availability
+        run: |
+          curl -f http://localhost:8080 || exit 1
+
+      - name: Shut down and clean up services
+        run: docker-compose down
