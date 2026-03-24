@@ -1,0 +1,17 @@
+# Dependency directories
+node_modules/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDEs
+.vscode/
+.idea/
+
+# Ignore API keys
+backend/.env
+.env

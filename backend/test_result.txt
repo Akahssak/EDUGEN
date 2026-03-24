@@ -1,0 +1,7 @@
+Key loaded: AIza...
+
+--- Test 1: google-generativeai (gemini-1.5-flash) ---
+Failed: 404 models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+
+--- Test 2: LangChain (gemini-flash-latest) ---
+Success! [{'type': 'text', 'text': 'Hello! How can I help you today?', 'extras': {'signature': 'Eq0CCqoCAb4+9vv2/Bs3iy+b9ob+Rl/Rpqy9WyrnZ+dNs1a0G2JNjDtd+dLT3c7FBW2328NWnaXmEKLj7PeJrKLZtG2cxnzX8y2lckzGCtS0cpV8u/Xghc/DBSlmvlcLGRZA0twrc6PnrDaVw9eUDb2KAGyUU2TSeT7OaJzlo774u3q+hwqaMZrLMMQoOzvcNMcdw00DS6aepQYtKVvgk/DJH+ZkXvQCUM5PcW6COvXKXetHhYx0/SKZF+2MgaDMOxJI+ICmdVBnDImCKRj0cv3FHV74VoxNFb+yaCsS+2xRwhypDyfzmk6YWIFZvSUJbjNZY8JLR3CSfMmHmKu+Ixdv9f+oUqkf6I/duu1HUiOC21tdJXbLgpojuYVDIIpg9tmsi7BRiV+k4f+wkD+cNw=='}}]
