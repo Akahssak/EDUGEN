@@ -3,13 +3,14 @@ services:
   - type: web
     name: edugen-backend
     env: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    rootDir: backend
+    dockerfilePath: Dockerfile
+    dockerContext: .
     envVars:
       - key: PORT
         value: 8000
       - key: DATABASE_URL
-        sync: false  # Set manually in Render dashboard
+        sync: false
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: JWT_SECRET_KEY
@@ -22,8 +23,9 @@ services:
   - type: web
     name: edugen-frontend
     env: docker
-    dockerfilePath: ./frontend/Dockerfile
-    dockerContext: ./frontend
+    rootDir: frontend
+    dockerfilePath: Dockerfile
+    dockerContext: .
     dockerBuildArgs:
       - key: VITE_API_URL
         value: https://edugen-backend.onrender.com
