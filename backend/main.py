@@ -71,6 +71,10 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(canvas_router, prefix="/api")
 app.include_router(analyze_router, prefix="/api")
 
+@app.get("/")
+def read_root():
+    return {"status": "online", "message": "EduGen API is running perfectly!"}
+
 # Profile Management
 class ProfileUpdate(BaseModel):
     user_id: int

@@ -24,7 +24,9 @@ services:
     dockerfilePath: frontend/Dockerfile
     dockerBuildArgs:
       - key: VITE_API_URL
-        value: https://edugen-backend.onrender.com
+        value: https://edugen-backend-isa4.onrender.com
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
     envVars:
       - key: VITE_API_URL
         value: https://edugen-backend.onrender.com
