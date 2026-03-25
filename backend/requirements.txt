@@ -20,3 +20,5 @@ google-auth
 bcrypt
 python-jose[cryptography]
 email-validator
+langchain-groq
+langchain-xai
