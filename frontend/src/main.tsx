@@ -11,7 +11,7 @@ const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
 
 // Hardcode the Client ID directly into the code to ensure it is always present in production
-const googleClientId = "417182243430-9f86d2iehab7m448qek8vukneo4emni4.apps.googleusercontent.com";
+const googleClientId = "417182243430-iio6ndabti96kaqr6eqh9golk6b2ev3i.apps.googleusercontent.com";
 
 // Debugging log (seen in browser console)
 console.log("EduGen Authentication Initialized with Client ID:", googleClientId.substring(0, 10) + "...");

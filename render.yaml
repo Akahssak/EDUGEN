@@ -26,5 +26,5 @@ services:
       - key: VITE_API_URL
         value: https://edugen-backend-isa4.onrender.com
       - key: VITE_GOOGLE_CLIENT_ID
-        value: 417182243430-9f86d2iehab7m448qek8vukneo4emni4.apps.googleusercontent.com
+        value: 417182243430-iio6ndabti96kaqr6eqh9golk6b2ev3i.apps.googleusercontent.com
     plan: free
