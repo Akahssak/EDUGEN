@@ -128,9 +128,7 @@ export default function Landing() {
             {/* NAV */}
             <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '1.2rem 2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(2,8,24,0.7)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <div style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', padding: '0.5rem', borderRadius: '0.7rem' }}>
-                        <BrainCircuit size={22} color="white" />
-                    </div>
+                    <img src="/logo.png" alt="EduGen Logo" style={{ width: '40px', height: '40px', borderRadius: '0.8rem', objectFit: 'cover' }} />
                     <span style={{ fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>EduGen <span style={{ color: '#60a5fa' }}>AI</span></span>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>

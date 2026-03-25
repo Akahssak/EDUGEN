@@ -601,9 +601,7 @@ export default function Chat() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '3rem' }}>
-                    <div style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', padding: '1rem', borderRadius: '1.2rem' }}>
-                        <BrainCircuit size={48} color="white" />
-                    </div>
+                    <img src="/logo.png" alt="EduGen Logo" style={{ width: '64px', height: '64px', borderRadius: '1.2rem', boxShadow: '0 8px 30px rgba(59,130,246,0.3)' }} />
                     <div>
                         <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: 0 }}>EduGen <span style={{ color: '#60a5fa' }}>Spaces</span></h1>
                         <p style={{ color: '#94a3b8', margin: 0 }}>Welcome back, {user.name}</p>
@@ -681,7 +679,9 @@ export default function Chat() {
 
                     {/* Navbar */}
                     <div className="toolbar-popdown" style={{ position: 'absolute', top: '1rem', left: '50%', transform: 'translateX(-50%)', zIndex: 1000, background: 'rgba(30, 41, 59, 0.8)', backdropFilter: 'blur(12px)', padding: '0.6rem 1rem', borderRadius: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.8rem', border: '1px solid rgba(255,255,255,0.1)', minWidth: '600px' }}>
-                        <button onClick={() => setCurrentWs(null)} style={toolButtonStyle} title="Spaces Dashboard"><LayoutGrid size={20} /></button>
+                        <button onClick={() => setCurrentWs(null)} style={toolButtonStyle} title="Spaces Dashboard">
+                            <img src="/logo.png" style={{ width: '22px', height: '22px', borderRadius: '0.3rem' }} />
+                        </button>
                         <div className="toolbar-project-info" style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem', borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '1rem' }}>
                             <span style={{ fontSize: '0.7rem', color: '#60a5fa', fontWeight: 700, textTransform: 'uppercase' }}>{currentWs.name}</span>
                             <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{editor?.getCurrentPage()?.name || 'Canvas'}</span>

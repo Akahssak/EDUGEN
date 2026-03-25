@@ -82,6 +82,7 @@ export default function Login() {
                 border: '1px solid rgba(255, 255, 255, 0.05)'
             }}>
                 <div style={{ textAlign: 'center' }}>
+                    <img src="/logo.png" alt="EduGen Logo" style={{ width: '64px', height: '64px', borderRadius: '1.2rem', marginBottom: '1rem', boxShadow: '0 8px 16px rgba(0,0,0,0.3)' }} />
                     <h1 style={{ margin: 0, fontSize: '2.2rem', fontWeight: '800', letterSpacing: '-0.03em' }}>
                         EduGen <span style={{ color: '#818cf8' }}>AI</span>
                     </h1>
