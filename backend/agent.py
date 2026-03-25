@@ -122,7 +122,11 @@ except Exception as e:
     print(f"⚠️ Error initializing embeddings: {e}")
     embeddings = None
 
-search_tool = DuckDuckGoSearchRun()
+try:
+    search_tool = DuckDuckGoSearchRun()
+except Exception as e:
+    print(f"⚠️ Failed to initialize search tool: {e}")
+    search_tool = None
 
 # ── RAG Store (PGVector — Cloud Persistent) ─────────────────────────────────
 from database import get_pgvector_connection_string
@@ -234,9 +238,12 @@ def data_fetcher_node(state: AgentState) -> AgentState:
     search_text = ""
     if state.get("research_results") == "PENDING":
         try:
-            search_text = search_tool.run(query)
+            if search_tool:
+                search_text = search_tool.run(query)
+            else:
+                search_text = "Search tool is currently unavailable."
         except:
-            search_text = "Search unavailable."
+            search_text = "Search unavailable due to an error."
             
     return {**state, "rag_material": rag_text, "research_results": search_text}
 
