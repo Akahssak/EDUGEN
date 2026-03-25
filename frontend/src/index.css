@@ -88,6 +88,11 @@
   .agent-thinking {
     @apply flex items-center gap-2 px-4 py-1.5 rounded-full bg-bg-elevated border border-border-subtle text-xs font-mono text-accent-glow shadow-[0_0_15px_rgba(56,189,248,0.2)];
   }
+  .blob {
+    @apply absolute rounded-full blur-[120px] pointer-events-none animate-blob z-0;
+    width: 600px;
+    height: 600px;
+  }
 }
 
 /* Custom Scrollbar */

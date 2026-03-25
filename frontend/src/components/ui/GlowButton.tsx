@@ -11,6 +11,7 @@ const GlowButton: React.FC<GlowButtonProps> = ({
   children, 
   variant = 'primary', 
   className = "", 
+  onClick,
   ...props 
 }) => {
   const baseStyles = "relative overflow-hidden font-display font-semibold transition-all duration-300 rounded-full active:scale-95";

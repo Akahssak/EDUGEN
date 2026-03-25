@@ -36,6 +36,22 @@ const Dashboard: React.FC = () => {
     fetchWorkspaces();
   }, [user, navigate]);
 
+  const handleCreateWorkspace = async () => {
+    const name = prompt("Enter a name for your new workspace:");
+    if (!name || !user) return;
+
+    try {
+      const res = await api.post('/api/workspaces', {
+        name,
+        user_id: user.id
+      });
+      setWorkspaces([res.data, ...workspaces]);
+    } catch (err) {
+      console.error("Failed to create workspace", err);
+      alert("Failed to create workspace. Please try again.");
+    }
+  };
+
   const onLogout = () => {
     dispatch(logout());
     navigate('/');
@@ -55,7 +71,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="px-6 mb-8">
-          <GlowButton className="w-full !py-2.5 text-sm" onClick={() => {/* handle create */}}>
+          <GlowButton className="w-full !py-2.5 text-sm" onClick={handleCreateWorkspace}>
             <Plus size={18} className="mr-2" />
             New Workspace
           </GlowButton>
@@ -146,7 +162,9 @@ const Dashboard: React.FC = () => {
                   
                   <h3 className="text-lg font-bold text-white mb-2 group-hover:text-accent-primary transition-colors">{ws.name}</h3>
                   <div className="mt-auto flex items-center justify-between">
-                    <span className="text-[10px] font-mono text-text-dim">Active {new Date(ws.updated_at).toLocaleDateString()}</span>
+                    <span className="text-[10px] font-mono text-text-dim">
+                      Active {ws.updated_at ? new Date(ws.updated_at).toLocaleDateString() : 'Just now'}
+                    </span>
                     <ChevronRight size={18} className="text-text-dim group-hover:text-accent-primary group-hover:translate-x-1 transition-all" />
                   </div>
                 </div>
@@ -160,7 +178,7 @@ const Dashboard: React.FC = () => {
               </div>
               <h2 className="text-xl font-bold mb-2">Create your first workspace</h2>
               <p className="text-text-muted max-w-sm mb-8">Start your learning journey by creating an environment for your specific subject or interest.</p>
-              <GlowButton onClick={() => {/* handle create */}}>
+              <GlowButton onClick={handleCreateWorkspace}>
                  Create Workspace
               </GlowButton>
             </div>
