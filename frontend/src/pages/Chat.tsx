@@ -88,6 +88,10 @@ export default function Chat() {
     const [showSidebar, setShowSidebar] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
     const [history, setHistory] = useState<any[]>([]);
+    const [activeTool, setActiveTool] = useState('select');
+    const [mobileInput, setMobileInput] = useState('');
+    const mobileInputRef = useRef<HTMLInputElement>(null);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [pageHistory, setPageHistory] = useState<string[]>([]);
     const [workspaceMap, setWorkspaceMap] = useState<any>({
         'page:page': { id: 'page:page', name: 'Main Canvas', parentId: null, children: [] }
@@ -129,8 +133,50 @@ export default function Chat() {
         fontSize: '1.2rem'
     };
 
+    const getToolStyle = (toolId: string): React.CSSProperties => ({
+        ...toolButtonStyle,
+        background: activeTool === toolId ? 'rgba(59,130,246,0.9)' : 'rgba(255,255,255,0.05)',
+        color: activeTool === toolId ? 'white' : '#94a3b8',
+        border: activeTool === toolId ? '1px solid rgba(96,165,250,0.6)' : '1px solid transparent',
+        boxShadow: activeTool === toolId ? '0 0 12px rgba(59,130,246,0.4)' : 'none',
+        transform: activeTool === toolId ? 'scale(1.08)' : 'scale(1)',
+    });
+
+    const setTool = (toolId: string) => {
+        editor?.setCurrentTool(toolId);
+        setActiveTool(toolId);
+    };
+
     const onLogout = () => {
         dispatch(logout());
+    };
+
+    // Track window resize for mobile detection
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Sync active tool from editor
+    useEffect(() => {
+        if (!editor) return;
+        const unsub = editor.store.listen(() => {
+            const toolId = editor.getCurrentToolId();
+            if (toolId) setActiveTool(toolId);
+        }, { source: 'user' });
+        return unsub;
+    }, [editor]);
+
+    // Submit from mobile text input
+    const handleMobileSubmit = () => {
+        const text = mobileInput.trim();
+        if (!text || isLoading || !editor) return;
+        const vp = editor.getViewportPageBounds();
+        const x = vp.midX - 200;
+        const y = vp.midY - 80;
+        setMobileInput('');
+        handlePromptSubmitRef.current?.(text, x, y, false, '');
     };
 
     // Workspace & Profile Fetches
@@ -678,7 +724,7 @@ export default function Chat() {
                     )}
 
                     {/* Navbar */}
-                    <div className="toolbar-popdown" style={{ position: 'absolute', top: '1rem', left: '50%', transform: 'translateX(-50%)', zIndex: 1000, background: 'rgba(30, 41, 59, 0.8)', backdropFilter: 'blur(12px)', padding: '0.6rem 1rem', borderRadius: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.8rem', border: '1px solid rgba(255,255,255,0.1)', minWidth: '600px' }}>
+                    <div className="toolbar-popdown" style={{ position: 'absolute', top: '1rem', left: '50%', transform: 'translateX(-50%)', zIndex: 1000, background: 'rgba(30, 41, 59, 0.9)', backdropFilter: 'blur(12px)', padding: '0.6rem 1rem', borderRadius: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.8rem', border: '1px solid rgba(255,255,255,0.1)', minWidth: isMobile ? 'unset' : '600px', maxWidth: isMobile ? '98vw' : 'unset' }}>
                         <button onClick={() => setCurrentWs(null)} style={toolButtonStyle} title="Spaces Dashboard">
                             <img src="/logo.png" style={{ width: '22px', height: '22px', borderRadius: '0.3rem' }} />
                         </button>
@@ -690,21 +736,21 @@ export default function Chat() {
                         <div style={{ display: 'flex', gap: '0.2rem' }}>
                             {[
                                 { id: 'select', icon: <ArrowLeft style={{ transform: 'rotate(135deg)' }} size={16} />, label: 'Pointer' },
-                                { id: 'draw', icon: <Sparkles size={16} />, label: 'Draw/Circle' },
-                                { id: 'text', icon: <span style={{ fontWeight: 800 }}>T</span>, label: 'Text/Ask' },
-                                { id: 'eraser', icon: <Save size={16} />, label: 'Eraser' }
+                                { id: 'draw', icon: <Sparkles size={16} />, label: 'Draw' },
+                                { id: 'text', icon: <span style={{ fontWeight: 800, fontSize: '14px' }}>T</span>, label: 'Text' },
+                                { id: 'eraser', icon: <Trash2 size={16} />, label: 'Erase' }
                             ].map(tool => (
-                                <button key={tool.id} onClick={() => editor?.setCurrentTool(tool.id)} style={{ ...toolButtonStyle, background: editor?.getCurrentToolId() === tool.id ? '#3b82f6' : 'transparent' }} title={tool.label}>{tool.icon}</button>
+                                <button key={tool.id} onClick={() => setTool(tool.id)} style={getToolStyle(tool.id)} title={tool.label}>{tool.icon}</button>
                             ))}
                         </div>
                         <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)', margin: '0 0.5rem' }} />
-                        <button onClick={() => editor?.undo()} style={toolButtonStyle}><RotateCcw size={18} /></button>
-                        <button onClick={() => editor?.redo()} style={toolButtonStyle}><RotateCw size={18} /></button>
-                        <button onClick={() => {
+                        <button onClick={() => editor?.undo()} style={{ ...toolButtonStyle, background: 'rgba(255,255,255,0.05)' }} title="Undo"><RotateCcw size={18} /></button>
+                        <button onClick={() => editor?.redo()} style={{ ...toolButtonStyle, background: 'rgba(255,255,255,0.05)' }} title="Redo"><RotateCw size={18} /></button>
+                        {!isMobile && <button onClick={() => {
                             const id = 'page:' + Date.now().toString(36);
                             editor?.createPage({ name: `Note ${editor.getPages().length + 1}`, id: (id as any) });
                             editor?.setCurrentPage((id as any));
-                        }} style={toolButtonStyle}><PlusCircle size={18} /></button>
+                        }} style={toolButtonStyle} title="New Page"><PlusCircle size={18} /></button>}
                         <button onClick={() => setShowSidebar(!showSidebar)} style={{ ...toolButtonStyle, color: showSidebar ? '#60a5fa' : 'white' }}><History size={18} /></button>
                         <button onClick={() => setShowProfile(true)} style={toolButtonStyle}><UserIcon size={18} /></button>
 
@@ -806,6 +852,92 @@ export default function Chat() {
                     onBrief={(txt: string) => handlePromptSubmit(`Please brief this topic from my material: ${txt}`, 100, 100)}
                 />
             )}
+
+            {/* ─── MOBILE ONLY: Bottom Toolbar ──────────────────────────── */}
+                {isMobile && (
+                    <div style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0,
+                        zIndex: 1001, display: 'flex', flexDirection: 'column', gap: 0,
+                    }}>
+                        {/* Mobile Chat Input */}
+                        <div style={{
+                            display: 'flex', alignItems: 'center', gap: '0.5rem',
+                            padding: '0.6rem 0.8rem',
+                            background: 'rgba(15, 23, 42, 0.97)',
+                            borderTop: '1px solid rgba(59,130,246,0.25)',
+                        }}>
+                            <input
+                                ref={mobileInputRef}
+                                value={mobileInput}
+                                onChange={e => setMobileInput(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') handleMobileSubmit(); }}
+                                placeholder={isLoading ? 'AI is thinking...' : 'Ask EduGen anything...'}
+                                disabled={isLoading}
+                                style={{
+                                    flex: 1, background: 'rgba(30,41,59,0.8)', border: '1px solid rgba(59,130,246,0.3)',
+                                    borderRadius: '2rem', padding: '0.7rem 1rem', color: 'white', outline: 'none',
+                                    fontSize: '0.95rem', caretColor: '#60a5fa',
+                                }}
+                            />
+                            <button
+                                onClick={handleMobileSubmit}
+                                disabled={isLoading || !mobileInput.trim()}
+                                style={{
+                                    background: isLoading ? '#334155' : '#3b82f6',
+                                    border: 'none', borderRadius: '50%', width: '44px', height: '44px',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    cursor: isLoading ? 'not-allowed' : 'pointer', flexShrink: 0,
+                                    boxShadow: isLoading ? 'none' : '0 0 12px rgba(59,130,246,0.5)',
+                                    transition: 'all 0.2s',
+                                }}
+                            >
+                                {isLoading ? <Sparkles size={18} className="pulse" color="white" /> : <Send size={18} color="white" />}
+                            </button>
+                        </div>
+
+                        {/* Mobile Tool Row */}
+                        <div style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-around',
+                            padding: '0.5rem 0.5rem 0.75rem',
+                            background: 'rgba(15, 23, 42, 0.98)',
+                            borderTop: '1px solid rgba(255,255,255,0.06)',
+                            paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))',
+                        }}>
+                            {[
+                                { id: 'select', icon: <ArrowLeft style={{ transform: 'rotate(135deg)' }} size={20} />, label: 'Select' },
+                                { id: 'draw', icon: <Sparkles size={20} />, label: 'Draw' },
+                                { id: 'text', icon: <span style={{ fontWeight: 900, fontSize: '16px' }}>T</span>, label: 'Text' },
+                                { id: 'eraser', icon: <Trash2 size={20} />, label: 'Erase' },
+                            ].map(tool => (
+                                <button
+                                    key={tool.id}
+                                    onClick={() => setTool(tool.id)}
+                                    style={{
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
+                                        background: activeTool === tool.id ? 'rgba(59,130,246,0.85)' : 'rgba(255,255,255,0.04)',
+                                        border: activeTool === tool.id ? '1px solid rgba(96,165,250,0.7)' : '1px solid rgba(255,255,255,0.08)',
+                                        borderRadius: '0.8rem', padding: '0.5rem 0.9rem', cursor: 'pointer',
+                                        color: activeTool === tool.id ? 'white' : '#94a3b8',
+                                        transition: 'all 0.18s', minWidth: '56px',
+                                        boxShadow: activeTool === tool.id ? '0 2px 12px rgba(59,130,246,0.4)' : 'none',
+                                    }}
+                                >
+                                    {tool.icon}
+                                    <span style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase' }}>{tool.label}</span>
+                                </button>
+                            ))}
+                            <button onClick={() => editor?.undo()} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.8rem', padding: '0.5rem 0.7rem', cursor: 'pointer', color: '#94a3b8', minWidth: '44px' }}>
+                                <RotateCcw size={20} /><span style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase' }}>Undo</span>
+                            </button>
+                            <button onClick={() => editor?.redo()} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.8rem', padding: '0.5rem 0.7rem', cursor: 'pointer', color: '#94a3b8', minWidth: '44px' }}>
+                                <RotateCw size={20} /><span style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase' }}>Redo</span>
+                            </button>
+                            <button onClick={() => { const id = 'page:' + Date.now().toString(36); editor?.createPage({ name: `Note ${editor.getPages().length + 1}`, id: (id as any) }); editor?.setCurrentPage((id as any)); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.8rem', padding: '0.5rem 0.7rem', cursor: 'pointer', color: '#94a3b8', minWidth: '44px' }}>
+                                <PlusCircle size={20} /><span style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase' }}>Page</span>
+                            </button>
+                        </div>
+                    </div>
+                )}
 
             <style>{`
                 @keyframes circleGlow {

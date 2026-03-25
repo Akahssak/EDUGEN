@@ -178,43 +178,27 @@ body {
 @media (max-width: 768px) {
   /* Main Container Padding */
   .canvas-container-outer {
-    padding: 0.5rem !important;
+    padding: 0 !important;
   }
   
   .canvas-container-inner {
-    border-width: 4px !important;
-    border-radius: 12px !important;
+    border-width: 0 !important;
+    border-radius: 0 !important;
+    /* Reserve space for mobile bottom bar (~180px: input + tool row) */
+    margin-bottom: 180px;
   }
 
-  /* Main Toolbar */
+  /* Hide desktop toolbar on mobile — we use the bottom toolbar instead */
   .toolbar-popdown {
-    min-width: 95vw !important;
-    width: 95vw;
-    padding: 0.4rem 0.5rem !important;
-    gap: 0.4rem !important;
-    flex-wrap: wrap;
-    justify-content: center;
-    border-radius: 1rem !important;
-    top: 0.5rem !important;
-  }
-
-  /* Make buttons smaller on mobile to fit */
-  .toolbar-popdown button {
-    padding: 0.4rem !important;
-    font-size: 1rem !important;
-  }
-
-  /* Hide project name text, keep just the icon/shorter text if needed */
-  .toolbar-project-info {
-    display: none !important;
-  }
-  
-  /* Hide the text 'Knowledge' / 'Upload' on mobile, keep icons */
-  .kb-toggle-text {
     display: none !important;
   }
 
-  /* Sidebars (Knowledge, Workspace, Profile) */
+  /* Workspace Selector: single column on mobile */
+  .workspace-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Sidebars (Knowledge, Workspace, Profile) — full screen on mobile */
   .knowledge-sidebar, .glass-panel.slide-in-right {
     width: 100% !important;
     max-width: 100vw !important;
@@ -233,5 +217,15 @@ body {
     padding: 1.5rem !important;
     max-height: 90vh;
     overflow-y: auto;
+  }
+
+  /* Larger touch targets */
+  button {
+    min-height: 36px;
+  }
+
+  /* Prevent text input zoom on iOS */
+  input, textarea, select {
+    font-size: 16px !important;
   }
 }
