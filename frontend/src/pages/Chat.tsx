@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import api from '../services/api';
-import { Send, LogOut, Sparkles, BookOpen, BrainCircuit, History, X, PlusCircle, RotateCcw, RotateCw, ArrowLeft, Network, ChevronRight, LayoutGrid, Folders, Plus, User as UserIcon, Settings, Save, Trash2, AlertCircle, RefreshCw, FileText, Maximize2, Minimize2, Search, Library } from 'lucide-react';
+import { Send, LogOut, Sparkles, BookOpen, BrainCircuit, History, X, PlusCircle, RotateCcw, RotateCw, ArrowLeft, Network, ChevronRight, LayoutGrid, Folders, Folder, Plus, User as UserIcon, Settings, Save, Trash2, AlertCircle, RefreshCw, FileText, Maximize2, Minimize2, Search, Library } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../redux/slices/authSlice';
 import { setIsLoading } from '../redux/slices/chatSlice';
@@ -10,6 +11,13 @@ import { AiTextShapeUtil } from '../shapes/AiTextShape';
 import { AiMermaidShapeUtil } from '../shapes/AiMermaidShape';
 import { DoubtMarkShapeUtil } from '../shapes/DoubtMarkShape';
 import { AiSourceMarkerUtil } from '../shapes/AiSourceMarker';
+import { motion, AnimatePresence } from 'framer-motion';
+import EduGenLogo from '../components/ui/EduGenLogo';
+import GlowButton from '../components/ui/GlowButton';
+import GlassCard from '../components/ui/GlassCard';
+import AgentThinkingIndicator from '../components/ui/AgentThinkingIndicator';
+import { ConceptTag, PulsingDot } from '../components/ui/ConceptTag';
+import StreamedText from '../components/ui/StreamedText';
 
 const customShapeUtils = [AiTextShapeUtil, AiMermaidShapeUtil, DoubtMarkShapeUtil, AiSourceMarkerUtil];
 
@@ -79,7 +87,8 @@ function resolveCollisions(editor: any, padding = 30) {
     }
 }
 
-export default function Chat() {
+export default function Chat({ onLogout }: any) {
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const user = useSelector((state: any) => state.auth.user);
     const isLoading = useSelector((state: any) => state.chat.isLoading);
@@ -147,9 +156,7 @@ export default function Chat() {
         setActiveTool(toolId);
     };
 
-    const onLogout = () => {
-        dispatch(logout());
-    };
+
 
     // Track window resize for mobile detection
     useEffect(() => {
@@ -633,81 +640,14 @@ export default function Chat() {
 
     // --- UI Renders ---
 
-    // 1. Workspace Selector
-    if (!currentWs) {
-        return (
-            <div style={{ minHeight: '100dvh', width: '100%', background: 'var(--bg-0)', color: 'var(--text-1)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2rem 1.5rem', overflowY: 'auto' }}>
+    // 1. Workspace Guard: Redirect to Dashboard if none selected
+    useEffect(() => {
+        if (!currentWs) {
+            navigate('/dashboard');
+        }
+    }, [currentWs, navigate]);
 
-                {/* Header */}
-                <div style={{ width: '100%', maxWidth: '960px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem', flexWrap: 'wrap', gap: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
-                        <img src="/logo.png" alt="EduGen" style={{ width: '48px', height: '48px', borderRadius: '1rem', boxShadow: '0 4px 20px rgba(59,130,246,0.35)' }} />
-                        <div>
-                            <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>EduGen <span style={{ color: '#60a5fa' }}>Spaces</span></h1>
-                            <p style={{ color: 'var(--text-2)', margin: 0, fontSize: '0.85rem' }}>Welcome back, {user.name}</p>
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <button onClick={() => setShowProfile(true)} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.88rem' }}>
-                            <UserIcon size={15} /> Profile
-                        </button>
-                        <button onClick={onLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171', padding: '0.55rem 1rem', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontSize: '0.88rem', fontWeight: 600 }}>
-                            <LogOut size={15} /> Logout
-                        </button>
-                    </div>
-                </div>
-
-                {/* Workspace Grid */}
-                <div className="ws-grid">
-                    {/* Create New */}
-                    <div className="glass-panel" style={{ padding: '1.8rem', borderRadius: 'var(--radius-lg)', border: '2px dashed rgba(96,165,250,0.2)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <div style={{ fontSize: '1rem', fontWeight: 700, color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><PlusCircle size={18} /> New Workspace</div>
-                        <input
-                            className="input-primary"
-                            placeholder="Name your workspace..."
-                            value={newWsName}
-                            onChange={(e) => setNewWsName(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') handleCreateWorkspace(); }}
-                        />
-                        <button onClick={handleCreateWorkspace} className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem' }}>
-                            <Plus size={18} /> Create Space
-                        </button>
-                    </div>
-
-                    {workspaces.map(ws => (
-                        <div
-                            key={ws.id}
-                            onClick={() => setCurrentWs(ws)}
-                            className="glass-panel"
-                            style={{ padding: '1.8rem', borderRadius: 'var(--radius-lg)', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', transition: 'all 0.22s', minHeight: '160px' }}
-                            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(96,165,250,0.3)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 16px 48px rgba(0,0,0,0.35)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--glass-border)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
-                        >
-                            <button
-                                onClick={(e) => handleDeleteWorkspace(ws, e)}
-                                title="Delete"
-                                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', color: '#f87171', borderRadius: '0.5rem', padding: '0.3rem 0.45rem', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.22)'}
-                                onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
-                            >
-                                <Trash2 size={13} />
-                            </button>
-                            <div>
-                                <Folders size={28} color="#60a5fa" style={{ marginBottom: '0.9rem' }} />
-                                <div style={{ fontSize: '1.2rem', fontWeight: 700, paddingRight: '2rem' }}>{ws.name}</div>
-                            </div>
-                            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-3)', fontWeight: 500 }}>Project Folder</span>
-                                <ChevronRight size={18} color="var(--text-3)" />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {showProfile && <ProfileOverlay profile={profile} setProfile={setProfile} onSave={handleUpdateProfile} onClose={() => setShowProfile(false)} />}
-            </div>
-        );
-    }
+    if (!currentWs) return null;
 
     // — Tool helpers —
     const tools = [
@@ -722,15 +662,98 @@ export default function Chat() {
         editor?.setCurrentPage(id);
     };
 
-    // 2. Main Canvas View
+    // 2. Main 3-Panel Cosmos View
     return (
-        <div style={{ display: 'flex', height: '100dvh', width: '100%', overflow: 'hidden', background: 'var(--bg-0)', color: 'var(--text-1)' }}>
+        <div className="flex h-screen w-full bg-bg-void overflow-hidden text-text-primary font-body grain selection:bg-accent-primary/30 selection:text-white">
+            
+            {/* ── Left Sidebar: Navigation & Context ──────────────────── */}
+            <aside className="w-[280px] hidden lg:flex flex-col bg-bg-surface/50 border-r border-border-subtle backdrop-blur-3xl z-30">
+                <div className="p-8 pb-4">
+                    <EduGenLogo size="sm" />
+                </div>
 
-            {/* ── Canvas column ─────────────────────────────────── */}
-            <div className="canvas-outer">
+                <div className="px-6 mb-6">
+                    <div className="p-4 bg-bg-elevated/40 border border-border-subtle rounded-2xl">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-8 h-8 rounded-lg bg-accent-primary/10 flex items-center justify-center text-accent-primary">
+                                <Plus size={18} />
+                            </div>
+                            <span className="text-xs font-bold uppercase tracking-widest text-text-muted">Brain Space</span>
+                        </div>
+                        <h2 className="text-sm font-bold truncate mb-1">{currentWs.name}</h2>
+                        <div className="flex items-center gap-1.5 text-[10px] font-mono text-text-dim uppercase tracking-wider">
+                            <PulsingDot />
+                            Active Concept
+                        </div>
+                    </div>
+                </div>
 
-                {/* Canvas frame */}
-                <div className="canvas-inner">
+                <div className="flex-1 px-4 overflow-y-auto space-y-1">
+                    <div className="px-4 py-2 text-[10px] font-mono text-text-dim uppercase tracking-widest opacity-50">Canvas Map</div>
+                    <PageTree nodeId="page:page" map={workspaceMap} onSelect={(id: any) => editor?.setCurrentPage(id)} currentId={editor?.getCurrentPageId() || ""} />
+                </div>
+
+                <div className="p-6 border-t border-border-subtle bg-bg-surface/20">
+                    <div className="flex items-center gap-3 mb-4 group cursor-pointer" onClick={() => setShowProfile(true)}>
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-accent-primary to-accent-secondary flex items-center justify-center border border-white/10 group-hover:shadow-[0_0_15px_rgba(79,142,247,0.3)] transition-all">
+                            <UserIcon size={16} className="text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="text-xs font-bold truncate group-hover:text-accent-primary transition-colors">{user?.username || 'Learner'}</div>
+                            <div className="text-[9px] font-mono text-text-dim">Settings & Profile</div>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={() => setCurrentWs(null)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-text-dim hover:text-white hover:bg-bg-elevated/50 border border-transparent hover:border-border-subtle transition-all"
+                    >
+                        <ChevronRight size={14} className="rotate-180" />
+                        Back to Spaces
+                    </button>
+                </div>
+            </aside>
+
+            {/* ── Main Panel: Canvas & Thinking ──────────────────────── */}
+            <main className="flex-1 relative bg-bg-void z-10 flex flex-col min-w-0">
+                
+                {/* Canvas Overlay Header */}
+                <header className="absolute top-0 left-0 right-0 z-20 px-6 py-4 flex items-center justify-between pointer-events-none">
+                    <div className="flex items-center gap-3 pointer-events-auto">
+                        <div className="px-4 py-2 bg-bg-surface/70 backdrop-blur-xl border border-border-subtle rounded-full text-xs font-bold text-text-muted flex items-center gap-2 shadow-xl">
+                            <LayoutGrid size={14} className="text-accent-primary" />
+                            {editor?.getCurrentPage()?.name || 'Main Board'}
+                        </div>
+                        {pageHistory.length > 0 && (
+                            <button
+                                onClick={() => {
+                                    const last = pageHistory[pageHistory.length - 1];
+                                    editor?.setCurrentPage(last as any);
+                                    setPageHistory(p => p.slice(0, -1));
+                                }}
+                                className="px-4 py-2 bg-accent-primary/10 backdrop-blur-xl border border-accent-primary/30 rounded-full text-xs font-bold text-accent-primary flex items-center gap-2 shadow-xl hover:bg-accent-primary/20 transition-all active:scale-95"
+                            >
+                                <ArrowLeft size={14} /> Parent Space
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-2 pointer-events-auto">
+                        {isLoading && <AgentThinkingIndicator />}
+                        <button 
+                            onClick={() => document.getElementById('kb-input')?.click()}
+                            className="w-10 h-10 bg-bg-surface/70 backdrop-blur-xl border border-border-subtle rounded-full flex items-center justify-center text-text-muted hover:text-white hover:border-accent-primary/40 transition-all shadow-xl"
+                            title="Upload Knowledge"
+                        >
+                            <Library size={18} />
+                        </button>
+                        <input id="kb-input" type="file" accept=".pdf,.txt" style={{ display: 'none' }}
+                            onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); e.target.value = ''; }}
+                        />
+                    </div>
+                </header>
+
+                {/* The Tldraw Surface */}
+                <div className="flex-1 w-full h-full relative z-0">
                     <Tldraw
                         licenseKey={(import.meta as any).env.VITE_TLDRAW_LICENSE_KEY || ''}
                         onMount={(ed) => {
@@ -742,198 +765,110 @@ export default function Chat() {
                         inferDarkMode={true}
                     />
 
-                    {/* Back button (when in drilled page) */}
-                    {pageHistory.length > 0 && (
-                        <button
-                            onClick={() => {
-                                const last = pageHistory[pageHistory.length - 1];
-                                editor?.setCurrentPage(last as any);
-                                setPageHistory(p => p.slice(0, -1));
-                            }}
-                            style={{ position: 'absolute', top: '4.5rem', left: '1rem', zIndex: 1000, display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(10,22,40,0.88)', border: '1px solid rgba(59,130,246,0.35)', color: '#60a5fa', padding: '0.55rem 1rem', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, backdropFilter: 'blur(12px)' }}
-                        >
-                            <ArrowLeft size={15} /> Back
-                        </button>
-                    )}
-
-                    {/* Desktop Toolbar */}
-                    <div className="toolbar toolbar-popdown">
-                        {/* Logo / back to spaces */}
-                        <button onClick={() => setCurrentWs(null)} className="tool-btn" title="Spaces Dashboard" style={{ width: 32, height: 32 }}>
-                            <img src="/logo.png" style={{ width: '20px', height: '20px', borderRadius: '0.3rem' }} alt="" />
-                        </button>
-
-                        {/* Project info */}
-                        <div style={{ display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.08)', paddingRight: '0.7rem', marginRight: '0.2rem', maxWidth: '120px' }}>
-                            <span style={{ fontSize: '0.62rem', color: '#60a5fa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentWs.name}</span>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{editor?.getCurrentPage()?.name || 'Canvas'}</span>
-                        </div>
-
-                        {/* Tools */}
+                    {/* Simple Brush Selector / Floating Toolbar (Canvas Bottom) */}
+                    <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-20 px-2 py-2 bg-bg-surface/60 backdrop-blur-2xl border border-border-subtle rounded-2xl flex items-center gap-1 shadow-2xl scale-90 md:scale-100">
                         {tools.map(t => (
-                            <button key={t.id} onClick={() => setTool(t.id)} className={`tool-btn${activeTool === t.id ? ' active' : ''}`} title={t.label}>{t.icon}</button>
-                        ))}
-
-                        <div className="toolbar-divider" />
-
-                        <button onClick={() => editor?.undo()} className="tool-btn" title="Undo"><RotateCcw size={15} /></button>
-                        <button onClick={() => editor?.redo()} className="tool-btn" title="Redo"><RotateCw size={15} /></button>
-                        <button onClick={addPage} className="tool-btn" title="New Page"><PlusCircle size={15} /></button>
-
-                        <div className="toolbar-divider" />
-
-                        <button onClick={() => setShowSidebar(!showSidebar)} className={`tool-btn${showSidebar ? ' active' : ''}`} title="Workspace Map"><History size={15} /></button>
-                        <button onClick={() => setShowProfile(true)} className="tool-btn" title="Profile"><UserIcon size={15} /></button>
-
-                        {/* Knowledge toggle */}
-                        <button
-                            className={`tool-btn${hasMaterial ? ' active' : ''}`}
-                            title={hasMaterial ? 'Toggle Knowledge Base' : 'Upload Knowledge Base'}
-                            onClick={() => { if (hasMaterial) setShowKnowledgeSidebar(!showKnowledgeSidebar); else document.getElementById('kb-input')?.click(); }}
-                            style={{ gap: '4px', width: 'auto', padding: '0 0.55rem', fontSize: '0.72rem', fontWeight: 700 }}
-                        >
-                            <span style={{ fontSize: '15px' }}>{hasMaterial ? '🧠' : '📎'}</span>
-                            <span>{hasMaterial ? 'KB' : 'Upload'}</span>
-                        </button>
-                        <input id="kb-input" type="file" accept=".pdf,.txt,.doc,.docx" style={{ display: 'none' }}
-                            onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); e.target.value = ''; }}
-                        />
-                    </div>
-
-                    {/* AI Thinking indicator */}
-                    {isLoading && (
-                        <div style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 300, display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(10,22,40,0.88)', backdropFilter: 'blur(10px)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-xl)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.2)', fontSize: '0.85rem', fontWeight: 600 }}>
-                            <Sparkles className="pulse" size={14} /> Thinking…
-                        </div>
-                    )}
-
-                    {/* Canvas load error */}
-                    {canvasLoadError && (
-                        <div style={{ position: 'absolute', bottom: '6rem', left: '50%', transform: 'translateX(-50%)', zIndex: 300, display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'rgba(10,22,40,0.95)', backdropFilter: 'blur(10px)', padding: '0.7rem 1.2rem', borderRadius: 'var(--radius-lg)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)', boxShadow: 'var(--shadow-float)', whiteSpace: 'nowrap' }}>
-                            <AlertCircle size={15} />
-                            <span style={{ fontWeight: 500, fontSize: '0.85rem' }}>Canvas load failed.</span>
-                            <button onClick={() => { setCanvasLoadError(false); setCurrentWs({ ...currentWs }); }} style={{ background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.25)', color: '#fbbf24', borderRadius: '0.4rem', padding: '0.2rem 0.55rem', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                <RefreshCw size={11} /> Retry
-                            </button>
-                            <button onClick={() => setCanvasLoadError(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-3)', cursor: 'pointer', display: 'flex' }}><X size={13} /></button>
-                        </div>
-                    )}
-
-                    {/* Circle glow effect */}
-                    {glowCircle && (
-                        <div style={{ position: 'fixed', left: glowCircle.x, top: glowCircle.y, width: glowCircle.w, height: glowCircle.h, borderRadius: '50%', border: '3px solid #60a5fa', boxShadow: '0 0 24px #60a5fa, 0 0 60px rgba(96,165,250,0.4), inset 0 0 30px rgba(96,165,250,0.1)', animation: 'circleGlow 1s ease-in-out forwards', pointerEvents: 'none', zIndex: 99999 }} />
-                    )}
-                </div>
-
-                {/* Workspace Map sidebar */}
-                {showSidebar && (
-                    <div className="glass-panel slide-in-right" style={{ position: 'absolute', right: '1rem', top: '4rem', bottom: '1rem', width: '280px', zIndex: 1000, borderRadius: 'var(--radius-lg)', padding: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h3 style={{ margin: 0, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-1)' }}><Network size={16} color="#60a5fa" /> Workspace Map</h3>
-                            <button onClick={() => setShowSidebar(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-2)', cursor: 'pointer', display: 'flex', padding: '0.25rem' }}><X size={18} /></button>
-                        </div>
-                        <PageTree nodeId="page:page" map={workspaceMap} onSelect={(id: any) => editor?.setCurrentPage(id)} currentId={editor?.getCurrentPageId() || ""} />
-                    </div>
-                )}
-
-                {/* Knowledge pull-tab */}
-                {hasMaterial && !showKnowledgeSidebar && (
-                    <button onClick={() => setShowKnowledgeSidebar(true)} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', background: 'var(--accent)', color: 'white', border: 'none', padding: '1rem 0.5rem', borderRadius: 'var(--radius-lg) 0 0 var(--radius-lg)', cursor: 'pointer', zIndex: 500, boxShadow: '-6px 0 20px rgba(59,130,246,0.3)' }}>
-                        <BookOpen size={18} />
-                    </button>
-                )}
-
-                {showProfile && <ProfileOverlay profile={profile} setProfile={setProfile} onSave={handleUpdateProfile} onClose={() => setShowProfile(false)} />}
-
-                {/* ── MOBILE BAR ─────────────────────────────────── */}
-                <div className="mobile-bar">
-                    {/* Chat input row */}
-                    <div className="mobile-input-row">
-                        <input
-                            ref={mobileInputRef}
-                            className="mobile-input"
-                            value={mobileInput}
-                            onChange={e => setMobileInput(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') handleMobileSubmit(); }}
-                            placeholder={isLoading ? 'AI is thinking…' : 'Ask EduGen anything…'}
-                            disabled={isLoading}
-                        />
-                        <button
-                            onClick={handleMobileSubmit}
-                            disabled={isLoading || !mobileInput.trim()}
-                            className="mobile-send-btn"
-                        >
-                            {isLoading ? <Sparkles size={18} className="pulse" color="white" /> : <Send size={18} color="white" />}
-                        </button>
-                    </div>
-
-                    {/* Tool row */}
-                    <div className="mobile-tool-row">
-                        {tools.map(t => (
-                            <button key={t.id} onClick={() => setTool(t.id)} className={`mobile-tool-btn${activeTool === t.id ? ' active' : ''}`}>
+                            <button 
+                                key={t.id} 
+                                onClick={() => setTool(t.id)} 
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${activeTool === t.id ? 'bg-accent-primary text-white shadow-lg shadow-accent-primary/30' : 'text-text-dim hover:bg-bg-elevated/50 hover:text-white'}`}
+                                title={t.label}
+                            >
                                 {t.icon}
-                                <span className="label">{t.label}</span>
                             </button>
                         ))}
-                        <button onClick={() => editor?.undo()} className="mobile-tool-btn">
-                            <RotateCcw size={18} /><span className="label">Undo</span>
-                        </button>
-                        <button onClick={() => editor?.redo()} className="mobile-tool-btn">
-                            <RotateCw size={18} /><span className="label">Redo</span>
-                        </button>
-                        <button onClick={addPage} className="mobile-tool-btn">
-                            <PlusCircle size={18} /><span className="label">Page</span>
-                        </button>
-                        <button onClick={() => setShowSidebar(!showSidebar)} className={`mobile-tool-btn${showSidebar ? ' active' : ''}`}>
-                            <History size={18} /><span className="label">Map</span>
-                        </button>
-                        <button onClick={() => { if (hasMaterial) setShowKnowledgeSidebar(!showKnowledgeSidebar); else document.getElementById('kb-input')?.click(); }} className={`mobile-tool-btn${hasMaterial ? ' active' : ''}`}>
-                            <span style={{ fontSize: '16px', lineHeight: 1 }}>{hasMaterial ? '🧠' : '📎'}</span>
-                            <span className="label">{hasMaterial ? 'KB' : 'Upload'}</span>
-                        </button>
+                        <div className="w-[1px] h-6 bg-border-subtle mx-1" />
+                        <button onClick={() => editor?.undo()} className="w-10 h-10 rounded-xl flex items-center justify-center text-text-dim hover:bg-bg-elevated/50 transition-all"><RotateCcw size={16} /></button>
+                        <button onClick={() => editor?.redo()} className="w-10 h-10 rounded-xl flex items-center justify-center text-text-dim hover:bg-bg-elevated/50 transition-all"><RotateCw size={16} /></button>
+                        <button onClick={addPage} className="w-10 h-10 rounded-xl flex items-center justify-center text-text-dim hover:bg-bg-elevated/50 transition-all"><PlusCircle size={16} /></button>
                     </div>
+
+                    {/* Floating Universal Command / Chat Bar */}
+                    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 w-[90%] max-w-2xl px-2 py-2">
+                        <div className="relative group overflow-hidden rounded-2xl bg-bg-surface/80 backdrop-blur-3xl border border-border-subtle shadow-[0_30px_60px_-12px_rgba(0,0,0,0.8)] focus-within:border-accent-primary/40 focus-within:ring-4 focus-within:ring-accent-primary/5 transition-all">
+                            
+                            {/* Animated Under-glow */}
+                            <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-accent-primary to-transparent opacity-0 group-focus-within:opacity-100 transition-opacity blur-[1px]"></div>
+
+                            <input 
+                                className="w-full bg-transparent py-4 pl-14 pr-24 outline-none font-body text-sm text-text-primary placeholder:text-text-dim"
+                                placeholder={isLoading ? "Agent thinking..." : "Explain this concept deeply..."}
+                                value={mobileInput}
+                                onChange={e => setMobileInput(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') handleMobileSubmit(); }}
+                            />
+
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-accent-primary">
+                                <Sparkles size={22} className={isLoading ? "animate-pulse" : ""} />
+                            </div>
+
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                <GlowButton 
+                                    onClick={handleMobileSubmit}
+                                    disabled={isLoading || !mobileInput.trim()}
+                                    className="!px-5 !py-1.5 text-xs h-9"
+                                >
+                                    {isLoading ? <RefreshCw size={14} className="animate-spin" /> : <Send size={14} />}
+                                    Send
+                                </GlowButton>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Circle detection glow overlay */}
+                    <AnimatePresence>
+                        {glowCircle && (
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 1.1 }}
+                                style={{ 
+                                    position: 'fixed', 
+                                    left: glowCircle.x, 
+                                    top: glowCircle.y, 
+                                    width: glowCircle.w, 
+                                    height: glowCircle.h, 
+                                    borderRadius: '50%', 
+                                    border: '3px solid #38bdf8',
+                                    boxShadow: '0 0 40px rgba(56,189,248,0.6), inset 0 0 40px rgba(56,189,248,0.2)',
+                                    zIndex: 9999,
+                                    pointerEvents: 'none'
+                                }}
+                            />
+                        )}
+                    </AnimatePresence>
                 </div>
-            </div>
+            </main>
 
-            {/* ── Knowledge Sidebar (desktop: right panel) ──── */}
-            {showKnowledgeSidebar && (
-                <KnowledgeSidebar
-                    content={uploadedFileContent}
-                    metadata={materialMetadata}
-                    onClose={() => setShowKnowledgeSidebar(false)}
-                    scrollToPhrase={scrollToPhrase}
-                    onBrief={(txt: string) => handlePromptSubmit(`Please brief this topic from my material: ${txt}`, 100, 100)}
-                />
-            )}
+            {/* ── Right Panel: Knowledge Vault ───────────────────────── */}
+            <AnimatePresence>
+                {showKnowledgeSidebar && (
+                    <KnowledgeSidebar
+                        content={uploadedFileContent}
+                        metadata={materialMetadata}
+                        onClose={() => setShowKnowledgeSidebar(false)}
+                        scrollToPhrase={scrollToPhrase}
+                        onBrief={(txt: string) => handlePromptSubmit(`Please brief this topic from my material: ${txt}`, 100, 100)}
+                    />
+                )}
+            </AnimatePresence>
 
-            <style>{`
-                @keyframes circleGlow {
-                    0%   { opacity: 0; transform: scale(0.85); }
-                    25%  { opacity: 1; transform: scale(1.08); }
-                    70%  { opacity: 1; transform: scale(1);    }
-                    100% { opacity: 0; transform: scale(1.15); }
-                }
-                .content-segment {
-                    padding: 0.5rem 1rem;
-                    border-radius: 0.5rem;
-                    transition: all 0.5s ease;
-                    margin-bottom: 0.25rem;
-                }
-                .highlight-glow {
-                    background: rgba(59, 130, 246, 0.2) !important;
-                    border-left: 4px solid #3b82f6 !important;
-                    box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
-                }
-                .knowledge-scrollbar::-webkit-scrollbar { width: 6px; }
-                .knowledge-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .knowledge-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-                .knowledge-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
-            `}</style>
+            {/* Profile & History Overlays */}
+            <AnimatePresence>
+                {showProfile && (
+                    <ProfileOverlay 
+                        profile={profile} 
+                        setProfile={setProfile} 
+                        onSave={handleUpdateProfile} 
+                        onClose={() => setShowProfile(false)} 
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }
 
-// Sub-component: Knowledge Sidebar
+// Sub-component: Knowledge Sidebar (Right Panel)
 function KnowledgeSidebar({ content, metadata, onClose, scrollToPhrase, onBrief }: any) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -942,13 +877,11 @@ function KnowledgeSidebar({ content, metadata, onClose, scrollToPhrase, onBrief 
     useEffect(() => {
         if (scrollToPhrase && scrollRef.current) {
             const elements = scrollRef.current.querySelectorAll('.content-segment');
-            let found = false;
             for (const el of elements) {
                 if (el.textContent?.toLowerCase().includes(scrollToPhrase.toLowerCase())) {
                     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    el.classList.add('highlight-glow');
-                    setTimeout(() => el.classList.remove('highlight-glow'), 5000);
-                    found = true;
+                    el.classList.add('bg-accent-primary/20', 'border-accent-primary/50', 'shadow-[0_0_20px_rgba(79,142,247,0.2)]');
+                    setTimeout(() => el.classList.remove('bg-accent-primary/20', 'border-accent-primary/50', 'shadow-[0_0_20px_rgba(79,142,247,0.2)]'), 5000);
                     break;
                 }
             }
@@ -961,50 +894,53 @@ function KnowledgeSidebar({ content, metadata, onClose, scrollToPhrase, onBrief 
     }));
 
     return (
-        <div className="glass-panel slide-in-right" style={{
-            width: '450px',
-            background: 'linear-gradient(180deg, #0f172a 0%, #020617 100%)',
-            borderLeft: '1px solid rgba(255,255,255,0.08)',
-            display: 'flex',
-            flexDirection: 'column',
-            zIndex: 1000,
-            boxShadow: '-20px 0 50px rgba(0,0,0,0.5)'
-        }}>
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.01)' }}>
+        <motion.aside 
+            initial={{ x: 450 }}
+            animate={{ x: 0 }}
+            exit={{ x: 450 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="w-[450px] bg-bg-surface/80 border-l border-border-subtle backdrop-blur-3xl z-40 flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.5)]"
+        >
+            <div className="p-6 border-b border-border-subtle bg-bg-surface/20 flex items-center justify-between">
                 <div>
-                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '0.8rem', letterSpacing: '-0.02em' }}>
-                        <Library size={22} strokeWidth={2.5} /> Knowledge Base
+                    <h3 className="text-lg font-display font-bold text-accent-primary flex items-center gap-3">
+                        <Library size={20} /> Knowledge Base
                     </h3>
-                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.75rem', color: '#64748b' }}>{metadata?.name || 'Synchronized Intelligence'}</p>
+                    <p className="text-[10px] font-mono text-text-dim uppercase tracking-widest mt-1">{metadata?.name || 'Indexed Intelligence'}</p>
                 </div>
-                <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.5rem', borderRadius: '0.5rem' }}>
-                    <Minimize2 size={20} />
+                <button onClick={onClose} className="p-2 rounded-full hover:bg-bg-elevated transition-colors text-text-dim hover:text-white">
+                    <X size={20} />
                 </button>
             </div>
 
-            <div style={{ padding: '0.8rem 1rem', background: 'rgba(0,0,0,0.2)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <div style={{ position: 'relative' }}>
-                    <Search size={14} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: '#475569' }} />
-                    <input
-                        placeholder="Search topics..."
+            {/* Search Bar */}
+            <div className="px-6 py-4 bg-bg-void/30">
+                <div className="relative group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-dim group-focus-within:text-accent-primary transition-colors" size={14} />
+                    <input 
+                        placeholder="Search workspace knowledge..."
+                        className="w-full bg-bg-surface/50 border border-border-subtle rounded-xl py-2 pl-10 pr-4 text-xs outline-none focus:border-accent-primary/40 focus:ring-4 focus:ring-accent-primary/5 transition-all"
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.6rem', padding: '0.5rem 0.8rem 0.5rem 2.2rem', color: 'white', boxSizing: 'border-box', fontSize: '0.85rem', outline: 'none' }}
                     />
                 </div>
             </div>
 
-            <div
+            <div 
                 ref={scrollRef}
-                className="knowledge-scrollbar"
-                style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+                className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar"
             >
                 {filteredSegments.map((segment: any, i: number) => (
-                    <div key={i} className={`content-segment group ${segment.isMatch ? 'highlight-glow' : ''}`} style={{ position: 'relative', fontSize: '0.9rem', lineHeight: '1.6', color: segment.isMatch ? '#fff' : '#cbd5e1', whiteSpace: 'pre-wrap', background: 'rgba(255,255,255,0.02)', padding: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        {segment.text}
-                        <button
+                    <div 
+                        key={i} 
+                        className={`content-segment p-4 rounded-xl bg-bg-elevated/20 border border-border-subtle hover:border-accent-primary/30 transition-all relative group ${segment.isMatch ? 'bg-accent-primary/10 border-accent-primary/40' : ''}`}
+                    >
+                        <p className="text-sm leading-relaxed text-text-muted group-hover:text-text-primary transition-colors">
+                            {segment.text}
+                        </p>
+                        <button 
                             onClick={() => onBrief(segment.text)}
-                            style={{ position: 'absolute', right: '0.5rem', top: '0.5rem', opacity: 0.7, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', color: '#60a5fa', fontSize: '0.7rem', padding: '0.2rem 0.5rem', borderRadius: '0.4rem', cursor: 'pointer' }}
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 px-3 py-1 bg-accent-primary/10 border border-accent-primary/30 rounded-lg text-[10px] font-bold text-accent-primary backdrop-blur-md transition-all active:scale-95"
                         >
                             Brief This
                         </button>
@@ -1012,127 +948,131 @@ function KnowledgeSidebar({ content, metadata, onClose, scrollToPhrase, onBrief 
                 ))}
             </div>
 
-            <div style={{ padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.2)', fontSize: '0.75rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Sparkles size={14} /> AI is currently using this material for context.
+            <div className="p-4 bg-bg-void/50 border-t border-border-subtle flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-accent-primary animate-pulse shadow-[0_0_8px_rgba(79,142,247,0.6)]" />
+                <span className="text-[10px] font-mono text-text-dim uppercase tracking-widest leading-none">AI context active: {metadata?.chunks || 0} chunks</span>
             </div>
-        </div>
+        </motion.aside>
     );
 }
 
-// Sub-component: Profile Overlay
+// Sub-component: Personal AI Context (Profile Overlay)
 function ProfileOverlay({ profile, setProfile, onSave, onClose }: any) {
     const [editingInterests, setEditingInterests] = React.useState(false);
-
-    // Parse interests string into tag array
-    const interestTags = (profile.interests || '')
-        .split(/[|,]/)
-        .map((s: string) => s.trim())
-        .filter(Boolean);
+    const interestTags = (profile.interests || '').split(/[|,]/).map((s: string) => s.trim()).filter(Boolean);
 
     return (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-            <div className="glass-panel slide-in-bottom" style={{ width: '100%', maxWidth: '520px', padding: '2.5rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem' }}><UserIcon color="#60a5fa" /> Personal AI Context</h2>
-                    <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={24} /></button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-12">
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="absolute inset-0 bg-bg-void/80 backdrop-blur-sm"
+            />
+            
+            <GlassCard className="w-full max-w-xl relative z-10 flex flex-col p-8 sm:p-10 !bg-bg-surface/90">
+                <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-2xl font-display font-bold text-white flex items-center gap-3">
+                        <UserIcon className="text-accent-primary" size={24} /> 
+                        AI Training Context
+                    </h2>
+                    <button onClick={onClose} className="p-2 rounded-full hover:bg-bg-elevated transition-colors text-text-dim hover:text-white">
+                        <X size={24} />
+                    </button>
                 </div>
 
-                <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>This data is used by the AI to personalize every explanation and diagram for you.</p>
+                <p className="text-sm text-text-muted mb-8 leading-relaxed">
+                    Adjust how the AI perceives your background and goals. This data shapes every analogy and visual generated for you.
+                </p>
 
-                {/* Bio */}
-                <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#60a5fa', fontWeight: 700, marginBottom: '0.5rem', textTransform: 'uppercase' }}>Professional Bio / Background</label>
-                    <textarea
-                        value={profile.bio || ''}
-                        onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                        placeholder="E.g. Computer Science student, loves competitive programming..."
-                        style={{ width: '100%', height: '80px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.8rem', padding: '0.8rem', color: 'white', resize: 'none', outline: 'none', boxSizing: 'border-box' }}
-                    />
-                </div>
-
-                {/* Interests — AI managed */}
-                <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <label style={{ fontSize: '0.8rem', color: '#60a5fa', fontWeight: 700, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <Sparkles size={13} /> Interests
-                            <span style={{ fontSize: '0.65rem', color: '#475569', fontWeight: 600, background: 'rgba(255,255,255,0.05)', padding: '0.15rem 0.4rem', borderRadius: '0.3rem', marginLeft: '0.3rem' }}>AI Detected</span>
-                        </label>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                            <button
-                                onClick={() => setEditingInterests(v => !v)}
-                                style={{ fontSize: '0.72rem', color: editingInterests ? '#fbbf24' : '#60a5fa', background: 'transparent', border: `1px solid ${editingInterests ? 'rgba(251,191,36,0.3)' : 'rgba(96,165,250,0.3)'}`, borderRadius: '0.4rem', padding: '0.2rem 0.6rem', cursor: 'pointer', fontWeight: 600 }}
-                            >
-                                {editingInterests ? 'Lock' : 'Edit'}
-                            </button>
-                            <button
-                                onClick={() => { setProfile({ ...profile, interests: '' }); setEditingInterests(false); }}
-                                style={{ fontSize: '0.72rem', color: '#f87171', background: 'transparent', border: '1px solid rgba(248,113,113,0.3)', borderRadius: '0.4rem', padding: '0.2rem 0.6rem', cursor: 'pointer', fontWeight: 600 }}
-                            >
-                                Clear
-                            </button>
-                        </div>
+                <div className="space-y-8">
+                    {/* Bio */}
+                    <div>
+                        <label className="block text-[10px] font-mono text-accent-primary uppercase tracking-widest mb-3">Professional Bio / Learning Goals</label>
+                        <textarea
+                            value={profile.bio || ''}
+                            onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                            placeholder="E.g. Engineering student, prefers physics analogies..."
+                            className="w-full h-32 bg-bg-void/50 border border-border-subtle rounded-2xl p-4 text-sm text-text-primary outline-none focus:border-accent-primary/40 focus:ring-4 focus:ring-accent-primary/5 transition-all resize-none shadow-inner"
+                        />
                     </div>
 
-                    {editingInterests ? (
-                        /* Manual edit mode */
-                        <div>
+                    {/* Interests */}
+                    <div>
+                        <div className="flex items-center justify-between mb-3">
+                            <label className="text-[10px] font-mono text-accent-primary uppercase tracking-widest flex items-center gap-2">
+                                <Sparkles size={12} /> Detected Interests
+                            </label>
+                            <div className="flex gap-2">
+                                <button onClick={() => setEditingInterests(!editingInterests)} className="text-[10px] font-bold text-accent-primary hover:underline uppercase tracking-tighter">
+                                    {editingInterests ? 'Lock' : 'Manually Edit'}
+                                </button>
+                                <button onClick={() => setProfile({ ...profile, interests: '' })} className="text-[10px] font-bold text-red-400/70 hover:text-red-400 hover:underline uppercase tracking-tighter">
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+
+                        {editingInterests ? (
                             <input
                                 value={profile.interests || ''}
                                 onChange={(e) => setProfile({ ...profile, interests: e.target.value })}
-                                placeholder="E.g. Blockchain, Astrophysics, Basketball analogies (separate with |)"
-                                style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: '0.8rem', padding: '0.8rem', color: 'white', outline: 'none', boxSizing: 'border-box', fontSize: '0.87rem' }}
+                                className="w-full bg-bg-void/50 border border-accent-secondary/30 rounded-xl p-3 text-sm text-text-primary outline-none focus:border-accent-secondary/60 transition-all font-mono"
+                                placeholder="Quantum Physics | Architecture | Sci-Fi..."
                             />
-                            <p style={{ fontSize: '0.72rem', color: '#475569', margin: '0.35rem 0 0' }}>Separate interests with a pipe | or comma. AI will also add to this list automatically as you learn.</p>
-                        </div>
-                    ) : (
-                        /* Tag display mode */
-                        <div style={{ minHeight: '44px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '0.8rem', padding: '0.6rem 0.8rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center' }}>
-                            {interestTags.length === 0 ? (
-                                <span style={{ color: '#334155', fontSize: '0.85rem', fontStyle: 'italic' }}>The AI will auto-detect your interests as you learn...</span>
-                            ) : (
-                                interestTags.map((tag: string, i: number) => (
-                                    <span key={i} style={{ background: 'rgba(96,165,250,0.12)', border: '1px solid rgba(96,165,250,0.2)', color: '#60a5fa', padding: '0.2rem 0.7rem', borderRadius: '2rem', fontSize: '0.78rem', fontWeight: 600 }}>
-                                        {tag}
-                                    </span>
-                                ))
-                            )}
-                        </div>
-                    )}
-                </div>
+                        ) : (
+                            <div className="min-h-[60px] bg-bg-void/30 border border-border-subtle rounded-2xl p-4 flex flex-wrap gap-2 items-center">
+                                {interestTags.length === 0 ? (
+                                    <span className="text-xs text-text-dim italic">AI will detect your interests as you interact with the canvas...</span>
+                                ) : (
+                                    interestTags.map((tag: string, i: number) => <ConceptTag key={i} text={tag} />)
+                                )}
+                            </div>
+                        )}
+                    </div>
 
-                {/* Learning Depth */}
-                <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', color: '#60a5fa', fontWeight: 700, marginBottom: '0.5rem', textTransform: 'uppercase' }}>Learning Depth</label>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        {['Beginner', 'Intermediate', 'Advanced'].map(lvl => (
-                            <button
-                                key={lvl}
-                                onClick={() => setProfile({ ...profile, learning_style: lvl })}
-                                style={{ flex: 1, padding: '0.6rem', borderRadius: '0.6rem', border: '1px solid', borderColor: profile.learning_style === lvl ? '#3b82f6' : 'rgba(255,255,255,0.1)', background: profile.learning_style === lvl ? 'rgba(59, 130, 246, 0.2)' : 'transparent', color: profile.learning_style === lvl ? '#60a5fa' : '#94a3b8', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
-                            >
-                                {lvl}
-                            </button>
-                        ))}
+                    {/* Learning Depth */}
+                    <div>
+                        <label className="block text-[10px] font-mono text-accent-primary uppercase tracking-widest mb-3">Complexity Preference</label>
+                        <div className="grid grid-cols-3 gap-3">
+                            {['Beginner', 'Intermediate', 'Advanced'].map(lvl => (
+                                <button
+                                    key={lvl}
+                                    onClick={() => setProfile({ ...profile, learning_style: lvl })}
+                                    className={`py-3 rounded-xl text-xs font-bold border transition-all ${profile.learning_style === lvl ? 'bg-accent-primary/10 border-accent-primary text-accent-primary shadow-[0_0_20px_rgba(79,142,247,0.1)]' : 'bg-transparent border-border-subtle text-text-dim hover:border-text-dim/30'}`}
+                                >
+                                    {lvl}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
-                <button onClick={onSave} style={{ marginTop: '0.5rem', background: '#3b82f6', color: 'white', border: 'none', padding: '1rem', borderRadius: '1rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                    <Save size={18} /> Save & Apply to AI
-                </button>
-            </div>
+                <div className="mt-10">
+                    <GlowButton onClick={onSave} className="w-full !py-4 rounded-2xl flex items-center justify-center gap-3">
+                        <Save size={18} />
+                        Update AI Personality
+                    </GlowButton>
+                </div>
+            </GlassCard>
         </div>
     );
 }
-
 
 function PageTree({ nodeId, map, onSelect, currentId, depth = 0 }: any) {
     const node = map[nodeId];
     if (!node) return null;
     return (
-        <div style={{ marginLeft: depth > 0 ? '1rem' : '0', borderLeft: depth > 0 ? '1px solid rgba(255,255,255,0.1)' : 'none' }}>
-            <div onClick={() => onSelect(nodeId)} style={{ padding: '0.4rem 0.6rem', cursor: 'pointer', borderRadius: '0.4rem', fontSize: '0.8rem', color: currentId === nodeId ? '#60a5fa' : '#94a3b8', background: currentId === nodeId ? 'rgba(96, 165, 250, 0.1)' : 'transparent', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.2s' }}>
-                {depth > 0 && <ChevronRight size={10} style={{ opacity: 0.5 }} />}
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{node.name}</span>
+        <div className={`${depth > 0 ? 'ml-4 border-l border-border-subtle/30 pl-2' : ''}`}>
+            <div 
+                onClick={() => onSelect(nodeId)} 
+                className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-all ${currentId === nodeId ? 'bg-accent-primary/10 text-accent-primary' : 'text-text-muted hover:bg-bg-elevated/50 hover:text-white'}`}
+            >
+                {depth > 0 && <span className="opacity-30">ㄴ</span>}
+                <Folder size={12} className={currentId === nodeId ? 'text-accent-primary' : 'text-text-dim'} />
+                <span className="text-xs truncate font-medium">{node.name}</span>
+                {currentId === nodeId && <div className="ml-auto w-1 h-1 rounded-full bg-accent-primary shadow-[0_0_5px_rgba(79,142,247,1)]" />}
             </div>
             {node.children && node.children.map((cid: string) => (
                 <PageTree key={cid} nodeId={cid} map={map} onSelect={onSelect} currentId={currentId} depth={depth + 1} />

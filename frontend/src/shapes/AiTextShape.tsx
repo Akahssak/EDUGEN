@@ -31,7 +31,7 @@ function AutoCard({ shape, text }: { shape: IAiTextShape; text: string }) {
         const el = contentRef.current;
         const newH = Math.max(120, el.scrollHeight + 48); // 48px padding top+bottom
         if (Math.abs(newH - shape.props.h) > 8) {
-            editor.updateShape({ id: shape.id, type: 'ai-text', props: { ...shape.props, h: newH } });
+            editor.updateShape({ id: shape.id, type: 'ai-text' as any, props: { ...shape.props, h: newH } });
         }
     });
 
@@ -43,6 +43,7 @@ function AutoCard({ shape, text }: { shape: IAiTextShape; text: string }) {
     );
 }
 
+// Using <any> for ShapeUtil to avoid complex Tldraw internal type registry conflicts
 export class AiTextShapeUtil extends ShapeUtil<any> {
     static override type = 'ai-text' as const;
     static override props = { text: T.string, w: T.number, h: T.number };
