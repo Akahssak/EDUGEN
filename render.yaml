@@ -7,6 +7,14 @@ services:
     envVars:
       - key: PORT
         value: 8000
+      - key: DATABASE_URL
+        sync: false  # Set manually in Render dashboard
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: JWT_SECRET_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
     plan: free
 
   # Frontend React App  
@@ -15,6 +23,6 @@ services:
     env: docker
     dockerfilePath: ./frontend/Dockerfile
     envVars:
-      - key: VITE_API_URL # Needed if we change the frontend to use env vars
-        value: https://edugen-backend.onrender.com 
+      - key: VITE_API_URL
+        value: https://edugen-backend.onrender.com
     plan: free

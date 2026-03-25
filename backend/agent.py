@@ -13,7 +13,6 @@ from langchain_groq import ChatGroq
 from langchain_xai import ChatXAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langchain_core.documents import Document
-from langchain_community.vectorstores import FAISS
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.tools import DuckDuckGoSearchRun
 from langgraph.graph import StateGraph, END, START
@@ -108,36 +107,67 @@ def get_google_key():
 embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001", google_api_key=get_google_key())
 search_tool = DuckDuckGoSearchRun()
 
-# ── RAG Store ───────────────────────────────────────────────────────────────
-VECTOR_STORE_DIR = Path(__file__).parent / "vector_stores"
-VECTOR_STORE_DIR.mkdir(exist_ok=True)
-_vector_stores = {}
+# ── RAG Store (PGVector — Cloud Persistent) ─────────────────────────────────
+from database import get_pgvector_connection_string
+
+_pgvector_conn = get_pgvector_connection_string()
+_vector_stores = {}  # In-memory cache of PGVector instances per page_id
+
+def _use_pgvector():
+    """Check if pgvector is available (i.e. we're using PostgreSQL, not SQLite)."""
+    return _pgvector_conn is not None
 
 def get_vector_store(page_id: str):
-    if page_id in _vector_stores: return _vector_stores[page_id]
-    path = VECTOR_STORE_DIR / page_id.replace(":", "_")
-    if path.exists():
-        try:
-            s = FAISS.load_local(str(path), embeddings, allow_dangerous_deserialization=True)
-            _vector_stores[page_id] = s
-            return s
-        except: pass
-    return None
+    """Get or create a PGVector store for a specific page."""
+    if not _use_pgvector():
+        return None
+    
+    if page_id in _vector_stores:
+        return _vector_stores[page_id]
+    
+    try:
+        from langchain_postgres import PGVector
+        collection_name = f"page_{page_id.replace(':', '_')}"
+        store = PGVector(
+            embeddings=embeddings,
+            collection_name=collection_name,
+            connection=_pgvector_conn,
+            use_jsonb=True,
+        )
+        _vector_stores[page_id] = store
+        return store
+    except Exception as e:
+        print(f"⚠️ PGVector store error for {page_id}: {e}")
+        return None
 
 def add_documents_to_store(page_id: str, texts: List[str], source: str = "upload"):
+    """Split texts into chunks and add to the PGVector store for this page."""
+    if not _use_pgvector():
+        print("⚠️ Vector store unavailable (SQLite mode — use PostgreSQL for RAG)")
+        return 0
+
     splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)
-    docs = [Document(page_content=c, metadata={"source": source}) for t in texts for c in splitter.split_text(t)]
-    existing = get_vector_store(page_id)
-    if existing:
-        existing.add_documents(docs)
-    else:
-        existing = FAISS.from_documents(docs, embeddings)
-    _vector_stores[page_id] = existing
+    docs = [Document(page_content=c, metadata={"source": source, "page_id": page_id}) for t in texts for c in splitter.split_text(t)]
     
-    # Save using a safe filename
-    safe_path = VECTOR_STORE_DIR / page_id.replace(":", "_")
-    existing.save_local(str(safe_path))
+    store = get_vector_store(page_id)
+    if store:
+        store.add_documents(docs)
+    
     return len(docs)
+
+def clear_vector_store(page_id: str):
+    """Delete all vectors for a specific page from PGVector."""
+    if not _use_pgvector():
+        return
+    try:
+        store = get_vector_store(page_id)
+        if store:
+            # Drop and recreate the collection
+            store.delete_collection()
+            _vector_stores.pop(page_id, None)
+            print(f"🗑️ Cleared vector store for page: {page_id}")
+    except Exception as e:
+        print(f"⚠️ Could not clear vector store: {e}")
 
 # ── State ──────────────────────────────────────────────────────────────────────
 class AgentState(TypedDict):
@@ -175,11 +205,11 @@ def data_fetcher_node(state: AgentState) -> AgentState:
     page_id = state["user_profile"].get("page_id", "default")
     query = state["messages"][-1].content
     
-    # 1. RAG (Fast local fetch)
+    # 1. RAG (PGVector cloud fetch)
     rag_text = ""
     store = get_vector_store(page_id)
     if store:
-        print(f"🔍 Searching local Knowledge Base for page: {page_id}")
+        print(f"🔍 Searching Knowledge Base (PGVector) for page: {page_id}")
         docs = store.similarity_search(query, k=3)
         rag_text = "\n\n".join([d.page_content for d in docs])
     
@@ -218,7 +248,7 @@ Return JSON structure:
   "user_update": "AI's private note",
   "scroll_to": "exact phrase from text"
 }}"""
-
+    
     # We use a slightly higher temperature for creativity, but strict JSON enforcement
     try:
         res = safe_llm_invoke([SystemMessage(content=sys), state["messages"][-1]], category="THINK", temperature=0.4)

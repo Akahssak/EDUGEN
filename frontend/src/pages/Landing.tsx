@@ -225,7 +225,6 @@ export default function Landing() {
                 </div>
             </section>
 
-            {/* DATA STORAGE SECTION */}
             <section id="data" style={{ position: 'relative', zIndex: 2, padding: '5rem 2rem', maxWidth: '900px', margin: '0 auto' }}>
                 <div style={{ background: 'rgba(15,23,42,0.9)', border: '1px solid rgba(96,165,250,0.15)', borderRadius: '1.5rem', padding: '3rem', backdropFilter: 'blur(10px)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
@@ -234,34 +233,34 @@ export default function Landing() {
                         </div>
                         <div>
                             <h2 style={{ fontWeight: 800, fontSize: '1.6rem', margin: 0 }}>Where Is Your Data Stored?</h2>
-                            <p style={{ color: '#64748b', margin: '0.3rem 0 0', fontSize: '0.9rem' }}>100% local — nothing leaves your machine</p>
+                            <p style={{ color: '#64748b', margin: '0.3rem 0 0', fontSize: '0.9rem' }}>Secure Cloud Persistence — Neon PostgreSQL + PGVector</p>
                         </div>
                     </div>
 
                     <div style={{ display: 'grid', gap: '1rem' }}>
                         {[
                             {
-                                label: 'SQLite Database',
-                                path: 'backend/edugen.db',
-                                desc: 'Stores all users, workspaces, and canvas snapshots (tldraw JSON). Viewable with any SQLite browser.',
+                                label: 'Neon Cloud Database',
+                                path: 'PostgreSQL (Cloud)',
+                                desc: 'Reliable, cloud-native storage for users, workspaces, and canvas snapshots. Your data is persistent and scalable.',
                                 color: '#34d399'
                             },
                             {
-                                label: 'Vector Store (RAG)',
-                                path: 'backend/vector_stores/{user_id}/',
-                                desc: 'FAISS index files for uploaded PDFs and TXT files. Each user gets their own isolated folder.',
+                                label: 'PGVector Store (RAG)',
+                                path: 'PostgreSQL + pgvector extension',
+                                desc: 'Vector embeddings for your PDFs and notes are stored directly in Postgres for ultra-fast, semantic retrieval.',
                                 color: '#a78bfa'
                             },
                             {
-                                label: 'Canvas Data (per workspace)',
-                                path: 'SQLite → canvas_data table → data (JSON)',
-                                desc: 'Full tldraw snapshot: all pages, shapes, text blocks, mermaid diagrams, and page names.',
+                                label: 'JWT Security',
+                                path: 'Authorization: Bearer <JWT>',
+                                desc: 'Sessions are secured with crytographically signed tokens. Only you can access your learning materials.',
                                 color: '#fbbf24'
                             },
                             {
                                 label: 'Environment & API Keys',
-                                path: 'backend/.env',
-                                desc: 'Google Gemini API keys are stored here. Never committed to version control.',
+                                path: 'Render / Railway / .env',
+                                desc: 'Google Gemini and OAuth keys are kept in encrypted environment variables.',
                                 color: '#f87171'
                             }
                         ].map(item => (
@@ -279,7 +278,7 @@ export default function Landing() {
                     <div style={{ marginTop: '2rem', background: 'rgba(59,130,246,0.07)', border: '1px solid rgba(59,130,246,0.15)', borderRadius: '0.8rem', padding: '1rem 1.2rem', display: 'flex', gap: '0.8rem', alignItems: 'flex-start' }}>
                         <Zap size={18} color="#60a5fa" style={{ flexShrink: 0, marginTop: '1px' }} />
                         <p style={{ color: '#93c5fd', fontSize: '0.87rem', margin: 0, lineHeight: 1.6 }}>
-                            <strong>Admin Panel</strong> at <code style={{ background: 'rgba(0,0,0,0.3)', padding: '0.1rem 0.4rem', borderRadius: '0.25rem' }}>http://localhost:8002</code> — view and manage all users, workspaces, pages, and canvas data in real-time. Includes delete workspace and full data inspector.
+                            <strong>Professional Infrastructure</strong> — EduGen now uses industry-standard cloud databases and OAuth2 security flow to ensure your learning experience is both fast and secure.
                         </p>
                     </div>
                 </div>

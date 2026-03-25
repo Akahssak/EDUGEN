@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { Send, LogOut, Sparkles, BookOpen, BrainCircuit, History, X, PlusCircle, RotateCcw, RotateCw, ArrowLeft, Network, ChevronRight, LayoutGrid, Folders, Plus, User as UserIcon, Settings, Save, Trash2, AlertCircle, RefreshCw, FileText, Maximize2, Minimize2, Search, Library } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../redux/slices/authSlice';
@@ -139,8 +139,8 @@ export default function Chat() {
         const fetchData = async () => {
             try {
                 const [wsRes, profRes] = await Promise.all([
-                    axios.get(`${import.meta.env.VITE_API_URL}/api/workspaces/${user.id}`),
-                    axios.get(`${import.meta.env.VITE_API_URL}/api/profile/${user.id}`)
+                    api.get(`/api/workspaces/${user.id}`),
+                    api.get(`/api/profile/me`)
                 ]);
                 setWorkspaces(wsRes.data);
                 setProfile(profRes.data);
@@ -152,7 +152,7 @@ export default function Chat() {
     const handleCreateWorkspace = async () => {
         if (!newWsName.trim()) return;
         try {
-            const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/workspaces/create`, {
+            const res = await api.post(`/api/workspaces/create`, {
                 user_id: user.id.toString(),
                 name: newWsName
             });
@@ -166,15 +166,14 @@ export default function Chat() {
         e.stopPropagation(); // don't open the workspace
         if (!window.confirm(`Delete workspace "${ws.name}"?\n\nThis will permanently remove all canvas data, pages, and diagrams stored in this workspace.`)) return;
         try {
-            await axios.delete(`${import.meta.env.VITE_API_URL}/api/workspaces/${ws.id}`);
+            await api.delete(`/api/workspaces/${ws.id}`);
             setWorkspaces(prev => prev.filter(w => w.id !== ws.id));
         } catch (err) { console.error("Workspace deletion failed", err); alert('Failed to delete workspace. Make sure the backend is running.'); }
     };
 
     const handleUpdateProfile = async () => {
         try {
-            await axios.post(`${import.meta.env.VITE_API_URL}/api/profile/update`, {
-                user_id: user.id,
+            await api.post(`/api/profile/update`, {
                 ...profile
             });
             setShowProfile(false);
@@ -198,7 +197,7 @@ export default function Chat() {
             if (!currentWs || !editor) return;
             const pageId = editor.getCurrentPageId();
             try {
-                const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/material/latest/${currentWs.id}/${pageId}`);
+                const res = await api.get(`/api/material/latest/${currentWs.id}/${pageId}`);
                 if (res.data.status === 'success') {
                     setUploadedFileContent(res.data.content);
                     setMaterialMetadata({ name: res.data.filename, chunks: res.data.chunks_indexed });
@@ -239,7 +238,7 @@ export default function Chat() {
         formData.append('page_id', pageId);
         formData.append('file', file);
         try {
-            const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/upload`, formData, {
+            const res = await api.post(`/api/upload`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setHasMaterial(true);
@@ -280,10 +279,9 @@ export default function Chat() {
             .join("\n");
 
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/chat`, {
+            const response = await api.post(`/chat`, {
                 message: text,
                 session_id: sessionId,
-                user_id: user.id,
                 page_id: editor.getCurrentPageId(),
                 context: boardContext
             });
@@ -546,7 +544,7 @@ export default function Chat() {
         setCanvasLoadError(false);
         const loadCanvas = async () => {
             try {
-                const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/canvas/load/${currentWs.id}`);
+                const response = await api.get(`/api/canvas/load/${currentWs.id}`);
                 if (response.data.data) {
                     const snapshot = JSON.parse(response.data.data);
                     editor.loadSnapshot(snapshot);
@@ -577,7 +575,7 @@ export default function Chat() {
         const saveCanvas = async () => {
             try {
                 const snapshot = editor.getSnapshot();
-                await axios.post(`${import.meta.env.VITE_API_URL}/api/canvas/save`, {
+                await api.post(`/api/canvas/save`, {
                     workspace_id: currentWs.id,
                     data: JSON.stringify(snapshot)
                 });
@@ -653,9 +651,10 @@ export default function Chat() {
     // 2. Main Canvas View
     return (
         <div style={{ display: 'flex', height: '100vh', width: '100%', overflow: 'hidden', background: '#0f172a', color: 'white' }}>
-            <div style={{ flex: 1, background: '#0f172a', padding: '1.5rem', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+            <div className="canvas-container-outer" style={{ flex: 1, background: '#0f172a', padding: '1.5rem', display: 'flex', flexDirection: 'column', position: 'relative' }}>
 
                 <div
+                    className="canvas-container-inner"
                     style={{ flex: 1, position: 'relative', border: '12px solid #1e3a8a', borderRadius: '24px', boxShadow: 'inset 0 0 60px rgba(0,0,0,0.8), 0 20px 50px rgba(0,0,0,0.5)', background: '#0f172a', overflow: 'hidden' }}
                 >
                     <Tldraw
@@ -683,7 +682,7 @@ export default function Chat() {
                     {/* Navbar */}
                     <div className="toolbar-popdown" style={{ position: 'absolute', top: '1rem', left: '50%', transform: 'translateX(-50%)', zIndex: 1000, background: 'rgba(30, 41, 59, 0.8)', backdropFilter: 'blur(12px)', padding: '0.6rem 1rem', borderRadius: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.8rem', border: '1px solid rgba(255,255,255,0.1)', minWidth: '600px' }}>
                         <button onClick={() => setCurrentWs(null)} style={toolButtonStyle} title="Spaces Dashboard"><LayoutGrid size={20} /></button>
-                        <div style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem', borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '1rem' }}>
+                        <div className="toolbar-project-info" style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem', borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '1rem' }}>
                             <span style={{ fontSize: '0.7rem', color: '#60a5fa', fontWeight: 700, textTransform: 'uppercase' }}>{currentWs.name}</span>
                             <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{editor?.getCurrentPage()?.name || 'Canvas'}</span>
                         </div>
@@ -729,7 +728,7 @@ export default function Chat() {
                             }}
                         >
                             <span style={{ fontSize: '16px' }}>{hasMaterial ? '🧠' : '📎'}</span>
-                            <span style={{ fontSize: '0.72rem', fontWeight: 600 }}>{hasMaterial ? 'Knowledge' : 'Upload'}</span>
+                            <span className="kb-toggle-text" style={{ fontSize: '0.72rem', fontWeight: 600 }}>{hasMaterial ? 'Knowledge' : 'Upload'}</span>
                             <input id="kb-input" type="file" accept=".pdf,.txt,.doc,.docx" style={{ display: 'none' }}
                                 onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); e.target.value = ''; }}
                                 onClick={(e) => e.stopPropagation()}

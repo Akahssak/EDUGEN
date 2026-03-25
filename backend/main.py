@@ -4,8 +4,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
 import logging, traceback, json
-from agent import run_chat, add_documents_to_store
-from database import engine, Base, SessionLocal
+from agent import run_chat, add_documents_to_store, clear_vector_store
+from database import engine, Base, SessionLocal, enable_pgvector
 from models.db_models import User, CanvasData, Workspace, KnowledgeBase
 from sqlalchemy.orm import Session
 
@@ -13,7 +13,10 @@ from sqlalchemy.orm import Session
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("edugen-api")
 
-# Create tables
+# Trigger reload for Google Client ID
+
+# Create tables + enable pgvector
+enable_pgvector()
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="EduGen Production API")
@@ -32,14 +35,22 @@ async def global_exception_handler(request: Request, exc: Exception):
         }
     )
 
+import os as _os
+_cors_origins = [
+    "http://localhost:5173", "http://127.0.0.1:5173",
+    "http://localhost:5174", "http://127.0.0.1:5174",
+    "http://localhost:5175", "http://127.0.0.1:5175",
+    "http://localhost:5176", "http://127.0.0.1:5176",
+    "https://edugen-frontend.onrender.com",
+]
+# Allow extra origins via env var (comma-separated)
+_extra = _os.getenv("CORS_ORIGINS", "")
+if _extra:
+    _cors_origins.extend([o.strip() for o in _extra.split(",") if o.strip()])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173", "http://127.0.0.1:5173", 
-        "http://localhost:5174", "http://127.0.0.1:5174",
-        "http://localhost:5175", "http://127.0.0.1:5175",
-        "http://localhost:5176", "http://127.0.0.1:5176"
-    ],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -52,7 +63,7 @@ def get_db():
     finally:
         db.close()
 
-from routers.auth import router as auth_router
+from routers.auth import router as auth_router, get_current_user
 from routers.canvas import router as canvas_router
 from routers.analyze import router as analyze_router
 
@@ -67,23 +78,19 @@ class ProfileUpdate(BaseModel):
     interests: Optional[str] = None
     learning_style: Optional[str] = None
 
-@app.get("/api/profile/{user_id}")
-def get_profile(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+@app.get("/api/profile/me")
+def get_profile(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return {
-        "bio": user.bio,
-        "interests": user.interests,
-        "learning_style": user.learning_style,
-        "username": user.username
+        "bio": current_user.bio,
+        "interests": current_user.interests,
+        "learning_style": current_user.learning_style,
+        "username": current_user.username,
+        "email": current_user.email
     }
 
 @app.post("/api/profile/update")
-def update_profile(request: ProfileUpdate, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == request.user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+def update_profile(request: ProfileUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    user = current_user
     
     if request.bio is not None: user.bio = request.bio
     if request.interests is not None: user.interests = request.interests
@@ -103,10 +110,8 @@ class ChatRequest(BaseModel):
     context: Optional[str] = ""
 
 @app.post("/chat")
-async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == request.user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+async def chat_endpoint(request: ChatRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    user = current_user
 
     profile = {
         "user_id": user.id,
@@ -177,8 +182,14 @@ async def upload_material(
     workspace_id: int = Form(...), 
     page_id: str = Form(...), 
     file: UploadFile = File(...), 
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    # Verify workspace ownership
+    workspace = db.query(Workspace).filter(Workspace.id == workspace_id, Workspace.user_id == current_user.id).first()
+    if not workspace:
+        raise HTTPException(status_code=403, detail="Not authorized for this workspace")
+
     try:
         content_type = file.content_type or ""
         filename = file.filename or ""
@@ -222,15 +233,16 @@ async def upload_material(
         logger.error(f"❌ Upload Failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.delete("/api/material/clear/{user_id}")
-async def clear_material(user_id: int):
-    """Clear all uploaded material for a user."""
-    from agent import _vector_stores, VECTOR_STORE_DIR
-    import shutil
-    _vector_stores.pop(user_id, None)
-    store_path = VECTOR_STORE_DIR / str(user_id)
-    if store_path.exists():
-        shutil.rmtree(store_path)
+@app.delete("/api/material/clear")
+async def clear_material(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Clear all uploaded material for the current user."""
+    # Clear vector stores for all pages belonging to this user's workspaces
+    workspaces = db.query(Workspace).filter(Workspace.user_id == current_user.id).all()
+    for ws in workspaces:
+        materials = db.query(KnowledgeBase).filter(KnowledgeBase.workspace_id == ws.id).all()
+        page_ids = set(m.page_id for m in materials)
+        for pid in page_ids:
+            clear_vector_store(pid)
     return {"status": "cleared"}
 
 if __name__ == "__main__":

@@ -6,7 +6,10 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
+    username = Column(String, index=True) # Display name
+    email = Column(String, unique=True, index=True, nullable=True)
+    google_id = Column(String, unique=True, index=True, nullable=True)
+    hashed_password = Column(String, nullable=True)
     bio = Column(Text, nullable=True) # User bio/background
     interests = Column(Text, nullable=True) # JSON or comma separated
     learning_style = Column(String, default="Intermediate") # Beginner, Intermediate, Advanced
