@@ -10,7 +10,11 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
 
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "PASTE_YOUR_GOOGLE_CLIENT_ID_HERE";
+// Hardcode the Client ID directly into the code to ensure it is always present in production
+const googleClientId = "417182243430-9f86d2iehab7m448qek8vukneo4emni4.apps.googleusercontent.com";
+
+// Debugging log (seen in browser console)
+console.log("EduGen Authentication Initialized with Client ID:", googleClientId.substring(0, 10) + "...");
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
