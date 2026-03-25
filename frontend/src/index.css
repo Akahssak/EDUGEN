@@ -1,26 +1,34 @@
 @import "tailwindcss";
 
 @theme {
+  /* Core Colors */
   --color-bg-void: #07080f;
   --color-bg-surface: #0d1117;
   --color-bg-elevated: #131820;
+  
   --color-accent-primary: #4f8ef7;
   --color-accent-secondary: #7c3aed;
   --color-accent-glow: #38bdf8;
+  
   --color-text-primary: #e8eaf0;
   --color-text-muted: #6b7a99;
   --color-text-dim: #3a4259;
+  
   --color-success: #10b981;
   --color-warning: #f59e0b;
+  
   --color-border-subtle: rgba(79, 142, 247, 0.12);
 
+  /* Font Families */
   --font-display: Sora, system-ui, sans-serif;
   --font-body: "DM Sans", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
+  /* Animations */
   --animate-blob: blob 20s ease-in-out infinite alternate;
   --animate-orbit: orbit 8s linear infinite;
   --animate-fade-up: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-pulse-glow: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   
   @keyframes blob {
     0% { transform: translate(0px, 0px) scale(1); }
@@ -36,6 +44,24 @@
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+}
+
+/* Also define the raw variables for components that might use var() directly */
+:root {
+  --bg-void: #07080f;
+  --bg-surface: #0d1117;
+  --bg-elevated: #131820;
+  --accent-primary: #4f8ef7;
+  --accent-secondary: #7c3aed;
+  --accent-glow: #38bdf8;
+  --text-primary: #e8eaf0;
+  --text-muted: #6b7a99;
+  --text-dim: #3a4259;
+  --border-subtle: rgba(79, 142, 247, 0.12);
 }
 
 @layer base {

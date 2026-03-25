@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 function App() {
     const dispatch = useDispatch();
     const user = useSelector((state: any) => state.auth.user);
+    const isAuthenticated = user && user.id;
 
     return (
         <BrowserRouter>
@@ -19,19 +20,19 @@ function App() {
                 {/* Login — redirect to dashboard if already logged in */}
                 <Route
                     path="/login"
-                    element={!user ? <Login /> : <Navigate to="/dashboard" />}
+                    element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />}
                 />
 
                 {/* Dashboard — Workspace Selector */}
                 <Route
                     path="/dashboard"
-                    element={user ? <Dashboard /> : <Navigate to="/login" />}
+                    element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
                 />
 
                 {/* Chat/Canvas — redirect to login if not logged in */}
                 <Route
                     path="/chat"
-                    element={user ? <Chat onLogout={() => dispatch(logout())} /> : <Navigate to="/login" />}
+                    element={isAuthenticated ? <Chat onLogout={() => dispatch(logout())} /> : <Navigate to="/login" />}
                 />
             </Routes>
         </BrowserRouter>

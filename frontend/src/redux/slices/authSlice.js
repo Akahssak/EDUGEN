@@ -1,7 +1,18 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+const safeParse = (key) => {
+    try {
+        const item = localStorage.getItem(key);
+        if (!item || item === 'undefined') return null;
+        return JSON.parse(item);
+    } catch (e) {
+        console.error(`Auth persistence error for ${key}:`, e);
+        return null;
+    }
+};
+
 const initialState = {
-    user: JSON.parse(localStorage.getItem('edugen_user')) || null,
+    user: safeParse('edugen_user'),
     token: localStorage.getItem('edugen_token') || null,
 };
 
