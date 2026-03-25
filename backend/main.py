@@ -42,6 +42,7 @@ _cors_origins = [
     "http://localhost:5175", "http://127.0.0.1:5175",
     "http://localhost:5176", "http://127.0.0.1:5176",
     "https://edugen-frontend.onrender.com",
+    "https://edugen-frontend-v9rd.onrender.com",
 ]
 # Allow extra origins via env var (comma-separated)
 _extra = _os.getenv("CORS_ORIGINS", "")
