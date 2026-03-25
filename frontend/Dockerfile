@@ -8,13 +8,13 @@ ARG VITE_API_URL=http://localhost:8000
 ENV VITE_API_URL=$VITE_API_URL
 
 # Copy package metadata first to leverage Docker cache
-COPY package.json package-lock.json* ./
+COPY frontend/package.json frontend/package-lock.json* ./
 
 # Install dependencies
 RUN npm install
 
 # Copy application source code
-COPY . .
+COPY frontend/ .
 
 # Build the Vite React application
 RUN npm run build
