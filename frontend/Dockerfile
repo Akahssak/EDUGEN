@@ -11,13 +11,13 @@ ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 
 # Copy package metadata first to leverage Docker cache
-COPY frontend/package.json frontend/package-lock.json* ./
+COPY package.json package-lock.json* ./
 
 # Install dependencies
 RUN npm install
 
 # Copy application source code
-COPY frontend/ .
+COPY . .
 
 # Build the Vite React application
 RUN npm run build

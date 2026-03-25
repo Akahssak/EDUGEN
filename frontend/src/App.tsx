@@ -1,11 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from './redux/slices/authSlice';
 import Login from './pages/Login';
 import Chat from './pages/Chat';
 import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 
 function App() {
+    const dispatch = useDispatch();
     const user = useSelector((state: any) => state.auth.user);
 
     return (
@@ -29,7 +31,7 @@ function App() {
                 {/* Chat/Canvas — redirect to login if not logged in */}
                 <Route
                     path="/chat"
-                    element={user ? <Chat /> : <Navigate to="/login" />}
+                    element={user ? <Chat onLogout={() => dispatch(logout())} /> : <Navigate to="/login" />}
                 />
             </Routes>
         </BrowserRouter>
