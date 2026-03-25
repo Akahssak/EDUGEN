@@ -4,6 +4,7 @@ services:
     name: edugen-backend
     env: docker
     dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     envVars:
       - key: PORT
         value: 8000
@@ -22,6 +23,7 @@ services:
     name: edugen-frontend
     env: docker
     dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
     dockerBuildArgs:
       - key: VITE_API_URL
         value: https://edugen-backend.onrender.com
