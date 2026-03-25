@@ -27,6 +27,7 @@ const GlowButton: React.FC<GlowButtonProps> = ({
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.98 }}
       className={`${baseStyles} ${variants[variant]} ${className}`}
+      onClick={onClick}
       {...(props as any)}
     >
       <div className="relative z-10 flex items-center justify-center gap-2 px-8 py-3">

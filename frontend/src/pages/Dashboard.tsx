@@ -83,10 +83,6 @@ const Dashboard: React.FC = () => {
             <LayoutGrid size={18} />
             Workspaces
           </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-text-muted hover:bg-bg-elevated/50 hover:text-white transition-all">
-            <Clock size={18} />
-            Recent
-          </button>
         </nav>
 
         <div className="p-6 border-t border-border-subtle bg-bg-surface/30">
@@ -191,10 +187,6 @@ const Dashboard: React.FC = () => {
         <button className="flex flex-col items-center gap-1 text-accent-primary">
           <LayoutGrid size={24} />
           <span className="text-[10px] font-bold uppercase">Workspaces</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 text-text-muted">
-          <Clock size={24} />
-          <span className="text-[10px] font-bold uppercase">Recent</span>
         </button>
         <div className="w-12 h-12 bg-accent-primary rounded-full flex items-center justify-center -translate-y-6 shadow-lg shadow-accent-primary/40 border-4 border-bg-void">
           <Plus size={28} className="text-white" />

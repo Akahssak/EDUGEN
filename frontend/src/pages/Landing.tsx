@@ -118,10 +118,50 @@ const Landing: React.FC = () => {
             </motion.div>
           ))}
         </motion.div>
-
       </main>
 
-      {/* ── Footer Info ─────────────────────────────────────────── */}
+      {/* ── Features Section ─────────────────────────────────────── */}
+      <section id="features" className="relative z-10 py-32 px-6 lg:px-24">
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            <GlassCard className="!p-10 space-y-4">
+               <div className="w-12 h-12 rounded-xl bg-accent-primary/10 flex items-center justify-center text-accent-primary">
+                  <BrainCircuit size={28} />
+               </div>
+               <h3 className="text-xl font-bold">Deep Reasoning</h3>
+               <p className="text-text-muted text-sm leading-relaxed">Agentic workflows that break down complex subjects into digestible learning trees.</p>
+            </GlassCard>
+            <GlassCard className="!p-10 space-y-4" delay={0.1}>
+               <div className="w-12 h-12 rounded-xl bg-accent-secondary/10 flex items-center justify-center text-accent-secondary">
+                  <Database size={28} />
+               </div>
+               <h3 className="text-xl font-bold">Vector Persistence</h3>
+               <p className="text-text-muted text-sm leading-relaxed">Every document you upload becomes part of your AI's permanent specialized knowledge.</p>
+            </GlassCard>
+            <GlassCard className="!p-10 space-y-4" delay={0.2}>
+               <div className="w-12 h-12 rounded-xl bg-accent-glow/10 flex items-center justify-center text-accent-glow">
+                  <Layers size={28} />
+               </div>
+               <h3 className="text-xl font-bold">Interactive Canvas</h3>
+               <p className="text-text-muted text-sm leading-relaxed">Draw, write, and map concepts on an infinite spatial whiteboard designed for the mind.</p>
+            </GlassCard>
+         </div>
+      </section>
+
+      {/* ── Documentation Section ─────────────────────────────────── */}
+      <section id="docs" className="relative z-10 py-32 px-6 lg:px-24 bg-bg-surface/20">
+         <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl md:text-5xl font-display font-medium mb-12">Designed for the <span className="text-accent-primary">Digital Observatory.</span></h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {['RAG Flow', 'Intent Detection', 'Spatial Memory', 'Concept Index'].map(item => (
+                  <div key={item} className="p-6 border border-border-subtle rounded-2xl text-[10px] font-mono uppercase tracking-widest text-text-dim hover:text-white transition-colors cursor-default">
+                    {item}
+                  </div>
+                ))}
+            </div>
+         </div>
+      </section>
+
+      {/* ── Footer ─────────────────────────────────────────────────── */}
       <footer className="relative z-10 border-t border-border-subtle bg-bg-surface/50 py-12 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 opacity-60 hover:opacity-100 transition-opacity">
           <div className="flex items-center gap-2 text-text-dim font-mono text-xs">
