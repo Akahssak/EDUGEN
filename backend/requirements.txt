@@ -17,5 +17,6 @@ python-multipart
 langchain-core
 duckduckgo-search
 google-auth
-passlib[bcrypt]
+bcrypt
 python-jose[cryptography]
+email-validator
