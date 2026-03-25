@@ -27,4 +27,6 @@ services:
         value: https://edugen-backend-isa4.onrender.com
       - key: VITE_GOOGLE_CLIENT_ID
         value: 417182243430-iio6ndabti96kaqr6eqh9golk6b2ev3i.apps.googleusercontent.com
+      - key: VITE_TLDRAW_LICENSE_KEY
+        value: "tldraw-2026-07-03/WyJwbEhLYW5qViIsWyIqIl0sMTYsIjIwMjYtMDctMDMiXQ.uvJat4iQ4Ut3OK5on038nDRcIQGy0G0n/78M4CfOFbGsvRKvCXsqTWc471MtLm06LqMxawsoofYbk/i0BRZYng"
     plan: free

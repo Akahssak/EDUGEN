@@ -4,7 +4,7 @@ import { Send, LogOut, Sparkles, BookOpen, BrainCircuit, History, X, PlusCircle,
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../redux/slices/authSlice';
 import { setIsLoading } from '../redux/slices/chatSlice';
-import { Tldraw, Editor, createShapeId, toRichText } from 'tldraw';
+import { Tldraw, Editor, createShapeId } from 'tldraw';
 import 'tldraw/tldraw.css';
 import { AiTextShapeUtil } from '../shapes/AiTextShape';
 import { AiMermaidShapeUtil } from '../shapes/AiMermaidShape';
@@ -636,52 +636,69 @@ export default function Chat() {
     // 1. Workspace Selector
     if (!currentWs) {
         return (
-            <div style={{ minHeight: '100vh', width: '100%', background: '#0f172a', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4rem 2rem' }}>
-                <div style={{ position: 'absolute', top: '2rem', right: '2rem', display: 'flex', gap: '1rem' }}>
-                    <button onClick={() => setShowProfile(true)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', padding: '0.6rem 1.2rem', borderRadius: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <UserIcon size={18} /> Profile
-                    </button>
-                    <button onClick={onLogout} style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171', padding: '0.6rem 1.2rem', borderRadius: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <LogOut size={18} /> Logout
-                    </button>
-                </div>
+            <div style={{ minHeight: '100dvh', width: '100%', background: 'var(--bg-0)', color: 'var(--text-1)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2rem 1.5rem', overflowY: 'auto' }}>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '3rem' }}>
-                    <img src="/logo.png" alt="EduGen Logo" style={{ width: '64px', height: '64px', borderRadius: '1.2rem', boxShadow: '0 8px 30px rgba(59,130,246,0.3)' }} />
-                    <div>
-                        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: 0 }}>EduGen <span style={{ color: '#60a5fa' }}>Spaces</span></h1>
-                        <p style={{ color: '#94a3b8', margin: 0 }}>Welcome back, {user.name}</p>
+                {/* Header */}
+                <div style={{ width: '100%', maxWidth: '960px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+                        <img src="/logo.png" alt="EduGen" style={{ width: '48px', height: '48px', borderRadius: '1rem', boxShadow: '0 4px 20px rgba(59,130,246,0.35)' }} />
+                        <div>
+                            <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>EduGen <span style={{ color: '#60a5fa' }}>Spaces</span></h1>
+                            <p style={{ color: 'var(--text-2)', margin: 0, fontSize: '0.85rem' }}>Welcome back, {user.name}</p>
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <button onClick={() => setShowProfile(true)} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.88rem' }}>
+                            <UserIcon size={15} /> Profile
+                        </button>
+                        <button onClick={onLogout} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#f87171', padding: '0.55rem 1rem', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontSize: '0.88rem', fontWeight: 600 }}>
+                            <LogOut size={15} /> Logout
+                        </button>
                     </div>
                 </div>
 
-                <div style={{ width: '100%', maxWidth: '900px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
-                    <div className="glass-panel" style={{ padding: '2rem', borderRadius: '1.5rem', border: '2px dashed rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        <div style={{ fontSize: '1.2rem', fontWeight: 600, color: '#60a5fa' }}>New Workspace</div>
-                        <input placeholder="Project Name..." value={newWsName} onChange={(e) => setNewWsName(e.target.value)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.8rem', padding: '0.8rem', color: 'white', outline: 'none' }} />
-                        <button onClick={handleCreateWorkspace} style={{ background: '#3b82f6', color: 'white', border: 'none', borderRadius: '0.8rem', padding: '0.8rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                            <Plus size={20} /> Create New Space
+                {/* Workspace Grid */}
+                <div className="ws-grid">
+                    {/* Create New */}
+                    <div className="glass-panel" style={{ padding: '1.8rem', borderRadius: 'var(--radius-lg)', border: '2px dashed rgba(96,165,250,0.2)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div style={{ fontSize: '1rem', fontWeight: 700, color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><PlusCircle size={18} /> New Workspace</div>
+                        <input
+                            className="input-primary"
+                            placeholder="Name your workspace..."
+                            value={newWsName}
+                            onChange={(e) => setNewWsName(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') handleCreateWorkspace(); }}
+                        />
+                        <button onClick={handleCreateWorkspace} className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem' }}>
+                            <Plus size={18} /> Create Space
                         </button>
                     </div>
 
                     {workspaces.map(ws => (
-                        <div key={ws.id} onClick={() => setCurrentWs(ws)} className="glass-panel pulse-hover" style={{ padding: '2rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}>
-                            {/* Delete Button */}
+                        <div
+                            key={ws.id}
+                            onClick={() => setCurrentWs(ws)}
+                            className="glass-panel"
+                            style={{ padding: '1.8rem', borderRadius: 'var(--radius-lg)', cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative', transition: 'all 0.22s', minHeight: '160px' }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(96,165,250,0.3)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 16px 48px rgba(0,0,0,0.35)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--glass-border)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                        >
                             <button
                                 onClick={(e) => handleDeleteWorkspace(ws, e)}
-                                title="Delete Workspace"
-                                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', borderRadius: '0.5rem', padding: '0.35rem 0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', zIndex: 10, transition: 'all 0.2s' }}
-                                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.25)')}
-                                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.1)')}
+                                title="Delete"
+                                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)', color: '#f87171', borderRadius: '0.5rem', padding: '0.3rem 0.45rem', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.22)'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
                             >
-                                <Trash2 size={14} />
+                                <Trash2 size={13} />
                             </button>
                             <div>
-                                <Folders size={32} color="#60a5fa" style={{ marginBottom: '1rem' }} />
-                                <div style={{ fontSize: '1.4rem', fontWeight: 700 }}>{ws.name}</div>
+                                <Folders size={28} color="#60a5fa" style={{ marginBottom: '0.9rem' }} />
+                                <div style={{ fontSize: '1.2rem', fontWeight: 700, paddingRight: '2rem' }}>{ws.name}</div>
                             </div>
-                            <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Project Folder</span>
-                                <ChevronRight size={20} color="#64748b" />
+                            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-3)', fontWeight: 500 }}>Project Folder</span>
+                                <ChevronRight size={18} color="var(--text-3)" />
                             </div>
                         </div>
                     ))}
@@ -692,157 +709,193 @@ export default function Chat() {
         );
     }
 
+    // — Tool helpers —
+    const tools = [
+        { id: 'select', icon: <ArrowLeft style={{ transform: 'rotate(135deg)' }} size={16} />, label: 'Select' },
+        { id: 'draw',   icon: <Sparkles size={16} />,                                         label: 'Draw'   },
+        { id: 'text',   icon: <span style={{ fontWeight: 900, fontSize: '13px' }}>T</span>,   label: 'Text'   },
+        { id: 'eraser', icon: <Trash2 size={16} />,                                           label: 'Erase'  },
+    ];
+    const addPage = () => {
+        const id: any = 'page:' + Date.now().toString(36);
+        editor?.createPage({ name: `Note ${editor.getPages().length + 1}`, id });
+        editor?.setCurrentPage(id);
+    };
+
     // 2. Main Canvas View
     return (
-        <div style={{ display: 'flex', height: '100vh', width: '100%', overflow: 'hidden', background: '#0f172a', color: 'white' }}>
-            <div className="canvas-container-outer" style={{ flex: 1, background: '#0f172a', padding: '1.5rem', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        <div style={{ display: 'flex', height: '100dvh', width: '100%', overflow: 'hidden', background: 'var(--bg-0)', color: 'var(--text-1)' }}>
 
-                <div
-                    className="canvas-container-inner"
-                    style={{ flex: 1, position: 'relative', border: '12px solid #1e3a8a', borderRadius: '24px', boxShadow: 'inset 0 0 60px rgba(0,0,0,0.8), 0 20px 50px rgba(0,0,0,0.5)', background: '#0f172a', overflow: 'hidden' }}
-                >
+            {/* ── Canvas column ─────────────────────────────────── */}
+            <div className="canvas-outer">
+
+                {/* Canvas frame */}
+                <div className="canvas-inner">
                     <Tldraw
+                        licenseKey={(import.meta as any).env.VITE_TLDRAW_LICENSE_KEY || ''}
                         onMount={(ed) => {
                             setEditor(ed);
-                            (window as any).editor = ed; // For debugging
+                            (window as any).editor = ed;
                         }}
                         shapeUtils={customShapeUtils}
                         hideUi={true}
                         inferDarkMode={true}
                     />
 
-                    {/* Proactive Back Button */}
+                    {/* Back button (when in drilled page) */}
                     {pageHistory.length > 0 && (
-                        <button onClick={() => {
-                            const lastPage = pageHistory[pageHistory.length - 1];
-                            editor?.setCurrentPage(lastPage as any);
-                            setPageHistory(prev => prev.slice(0, -1));
-                        }}
-                            style={{ ...toolButtonStyle, position: 'absolute', top: '5rem', left: '1rem', zIndex: 1000, background: 'rgba(30, 41, 59, 0.9)', padding: '0.8rem 1.2rem', borderRadius: '1rem', border: '1px solid #3b82f6', fontSize: '0.9rem', gap: '0.5rem' }}>
-                            <ArrowLeft size={16} /> Back to Main
+                        <button
+                            onClick={() => {
+                                const last = pageHistory[pageHistory.length - 1];
+                                editor?.setCurrentPage(last as any);
+                                setPageHistory(p => p.slice(0, -1));
+                            }}
+                            style={{ position: 'absolute', top: '4.5rem', left: '1rem', zIndex: 1000, display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(10,22,40,0.88)', border: '1px solid rgba(59,130,246,0.35)', color: '#60a5fa', padding: '0.55rem 1rem', borderRadius: 'var(--radius-md)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, backdropFilter: 'blur(12px)' }}
+                        >
+                            <ArrowLeft size={15} /> Back
                         </button>
                     )}
 
-                    {/* Navbar */}
-                    <div className="toolbar-popdown" style={{ position: 'absolute', top: '1rem', left: '50%', transform: 'translateX(-50%)', zIndex: 1000, background: 'rgba(30, 41, 59, 0.9)', backdropFilter: 'blur(12px)', padding: '0.6rem 1rem', borderRadius: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.8rem', border: '1px solid rgba(255,255,255,0.1)', minWidth: isMobile ? 'unset' : '600px', maxWidth: isMobile ? '98vw' : 'unset' }}>
-                        <button onClick={() => setCurrentWs(null)} style={toolButtonStyle} title="Spaces Dashboard">
-                            <img src="/logo.png" style={{ width: '22px', height: '22px', borderRadius: '0.3rem' }} />
+                    {/* Desktop Toolbar */}
+                    <div className="toolbar toolbar-popdown">
+                        {/* Logo / back to spaces */}
+                        <button onClick={() => setCurrentWs(null)} className="tool-btn" title="Spaces Dashboard" style={{ width: 32, height: 32 }}>
+                            <img src="/logo.png" style={{ width: '20px', height: '20px', borderRadius: '0.3rem' }} alt="" />
                         </button>
-                        <div className="toolbar-project-info" style={{ display: 'flex', flexDirection: 'column', marginRight: '1rem', borderRight: '1px solid rgba(255,255,255,0.1)', paddingRight: '1rem' }}>
-                            <span style={{ fontSize: '0.7rem', color: '#60a5fa', fontWeight: 700, textTransform: 'uppercase' }}>{currentWs.name}</span>
-                            <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{editor?.getCurrentPage()?.name || 'Canvas'}</span>
+
+                        {/* Project info */}
+                        <div style={{ display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.08)', paddingRight: '0.7rem', marginRight: '0.2rem', maxWidth: '120px' }}>
+                            <span style={{ fontSize: '0.62rem', color: '#60a5fa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentWs.name}</span>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{editor?.getCurrentPage()?.name || 'Canvas'}</span>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '0.2rem' }}>
-                            {[
-                                { id: 'select', icon: <ArrowLeft style={{ transform: 'rotate(135deg)' }} size={16} />, label: 'Pointer' },
-                                { id: 'draw', icon: <Sparkles size={16} />, label: 'Draw' },
-                                { id: 'text', icon: <span style={{ fontWeight: 800, fontSize: '14px' }}>T</span>, label: 'Text' },
-                                { id: 'eraser', icon: <Trash2 size={16} />, label: 'Erase' }
-                            ].map(tool => (
-                                <button key={tool.id} onClick={() => setTool(tool.id)} style={getToolStyle(tool.id)} title={tool.label}>{tool.icon}</button>
-                            ))}
-                        </div>
-                        <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)', margin: '0 0.5rem' }} />
-                        <button onClick={() => editor?.undo()} style={{ ...toolButtonStyle, background: 'rgba(255,255,255,0.05)' }} title="Undo"><RotateCcw size={18} /></button>
-                        <button onClick={() => editor?.redo()} style={{ ...toolButtonStyle, background: 'rgba(255,255,255,0.05)' }} title="Redo"><RotateCw size={18} /></button>
-                        {!isMobile && <button onClick={() => {
-                            const id = 'page:' + Date.now().toString(36);
-                            editor?.createPage({ name: `Note ${editor.getPages().length + 1}`, id: (id as any) });
-                            editor?.setCurrentPage((id as any));
-                        }} style={toolButtonStyle} title="New Page"><PlusCircle size={18} /></button>}
-                        <button onClick={() => setShowSidebar(!showSidebar)} style={{ ...toolButtonStyle, color: showSidebar ? '#60a5fa' : 'white' }}><History size={18} /></button>
-                        <button onClick={() => setShowProfile(true)} style={toolButtonStyle}><UserIcon size={18} /></button>
+                        {/* Tools */}
+                        {tools.map(t => (
+                            <button key={t.id} onClick={() => setTool(t.id)} className={`tool-btn${activeTool === t.id ? ' active' : ''}`} title={t.label}>{t.icon}</button>
+                        ))}
 
-                        {/* File Upload / Knowledge Toggle button */}
-                        <div style={{ width: '1px', height: '24px', background: 'rgba(255,255,255,0.1)', margin: '0 0.2rem' }} />
-                        <div
-                            title={hasMaterial ? "Toggle Knowledge Base" : "Upload Knowledge Base (PDF/TXT/DOCX)"}
-                            style={{
-                                ...toolButtonStyle, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
-                                color: hasMaterial ? '#60a5fa' : 'white',
-                                background: hasMaterial ? 'rgba(96,165,250,0.1)' : 'transparent',
-                                border: hasMaterial ? '1px solid rgba(96,165,250,0.3)' : 'none',
-                                borderRadius: '0.6rem', padding: '0.4rem 0.6rem',
-                            }}
-                            onClick={() => {
-                                if (hasMaterial) {
-                                    setShowKnowledgeSidebar(!showKnowledgeSidebar);
-                                } else {
-                                    document.getElementById('kb-input')?.click();
-                                }
-                            }}
+                        <div className="toolbar-divider" />
+
+                        <button onClick={() => editor?.undo()} className="tool-btn" title="Undo"><RotateCcw size={15} /></button>
+                        <button onClick={() => editor?.redo()} className="tool-btn" title="Redo"><RotateCw size={15} /></button>
+                        <button onClick={addPage} className="tool-btn" title="New Page"><PlusCircle size={15} /></button>
+
+                        <div className="toolbar-divider" />
+
+                        <button onClick={() => setShowSidebar(!showSidebar)} className={`tool-btn${showSidebar ? ' active' : ''}`} title="Workspace Map"><History size={15} /></button>
+                        <button onClick={() => setShowProfile(true)} className="tool-btn" title="Profile"><UserIcon size={15} /></button>
+
+                        {/* Knowledge toggle */}
+                        <button
+                            className={`tool-btn${hasMaterial ? ' active' : ''}`}
+                            title={hasMaterial ? 'Toggle Knowledge Base' : 'Upload Knowledge Base'}
+                            onClick={() => { if (hasMaterial) setShowKnowledgeSidebar(!showKnowledgeSidebar); else document.getElementById('kb-input')?.click(); }}
+                            style={{ gap: '4px', width: 'auto', padding: '0 0.55rem', fontSize: '0.72rem', fontWeight: 700 }}
                         >
-                            <span style={{ fontSize: '16px' }}>{hasMaterial ? '🧠' : '📎'}</span>
-                            <span className="kb-toggle-text" style={{ fontSize: '0.72rem', fontWeight: 600 }}>{hasMaterial ? 'Knowledge' : 'Upload'}</span>
-                            <input id="kb-input" type="file" accept=".pdf,.txt,.doc,.docx" style={{ display: 'none' }}
-                                onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); e.target.value = ''; }}
-                                onClick={(e) => e.stopPropagation()}
-                            />
-                        </div>
+                            <span style={{ fontSize: '15px' }}>{hasMaterial ? '🧠' : '📎'}</span>
+                            <span>{hasMaterial ? 'KB' : 'Upload'}</span>
+                        </button>
+                        <input id="kb-input" type="file" accept=".pdf,.txt,.doc,.docx" style={{ display: 'none' }}
+                            onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); e.target.value = ''; }}
+                        />
                     </div>
+
+                    {/* AI Thinking indicator */}
+                    {isLoading && (
+                        <div style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 300, display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(10,22,40,0.88)', backdropFilter: 'blur(10px)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-xl)', color: '#60a5fa', border: '1px solid rgba(96,165,250,0.2)', fontSize: '0.85rem', fontWeight: 600 }}>
+                            <Sparkles className="pulse" size={14} /> Thinking…
+                        </div>
+                    )}
+
+                    {/* Canvas load error */}
+                    {canvasLoadError && (
+                        <div style={{ position: 'absolute', bottom: '6rem', left: '50%', transform: 'translateX(-50%)', zIndex: 300, display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'rgba(10,22,40,0.95)', backdropFilter: 'blur(10px)', padding: '0.7rem 1.2rem', borderRadius: 'var(--radius-lg)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)', boxShadow: 'var(--shadow-float)', whiteSpace: 'nowrap' }}>
+                            <AlertCircle size={15} />
+                            <span style={{ fontWeight: 500, fontSize: '0.85rem' }}>Canvas load failed.</span>
+                            <button onClick={() => { setCanvasLoadError(false); setCurrentWs({ ...currentWs }); }} style={{ background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.25)', color: '#fbbf24', borderRadius: '0.4rem', padding: '0.2rem 0.55rem', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                <RefreshCw size={11} /> Retry
+                            </button>
+                            <button onClick={() => setCanvasLoadError(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-3)', cursor: 'pointer', display: 'flex' }}><X size={13} /></button>
+                        </div>
+                    )}
+
+                    {/* Circle glow effect */}
+                    {glowCircle && (
+                        <div style={{ position: 'fixed', left: glowCircle.x, top: glowCircle.y, width: glowCircle.w, height: glowCircle.h, borderRadius: '50%', border: '3px solid #60a5fa', boxShadow: '0 0 24px #60a5fa, 0 0 60px rgba(96,165,250,0.4), inset 0 0 30px rgba(96,165,250,0.1)', animation: 'circleGlow 1s ease-in-out forwards', pointerEvents: 'none', zIndex: 99999 }} />
+                    )}
                 </div>
 
-                {isLoading && (
-                    <div style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 300, display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(30, 41, 59, 0.8)', backdropFilter: 'blur(8px)', padding: '0.6rem 1.2rem', borderRadius: '1.2rem', color: '#60a5fa', border: '1px solid rgba(96, 165, 250, 0.2)' }}>
-                        <Sparkles className="pulse" size={16} />
-                        <span style={{ fontWeight: 500 }}>Thinking...</span>
-                    </div>
-                )}
-
-                {canvasLoadError && (
-                    <div style={{ position: 'absolute', bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)', zIndex: 300, display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'rgba(30,41,59,0.95)', backdropFilter: 'blur(10px)', padding: '0.8rem 1.4rem', borderRadius: '1.2rem', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.25)', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
-                        <AlertCircle size={16} />
-                        <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>Could not load saved canvas data from database.</span>
-                        <button onClick={() => { setCanvasLoadError(false); setCurrentWs({ ...currentWs }); }} style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)', color: '#fbbf24', borderRadius: '0.5rem', padding: '0.3rem 0.7rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontWeight: 600 }}>
-                            <RefreshCw size={12} /> Retry
-                        </button>
-                        <button onClick={() => setCanvasLoadError(false)} style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer' }}><X size={14} /></button>
-                    </div>
-                )}
-
+                {/* Workspace Map sidebar */}
                 {showSidebar && (
-                    <div className="glass-panel slide-in-right" style={{ position: 'absolute', right: '1rem', top: '5rem', bottom: '1rem', width: '300px', zIndex: 1000, borderRadius: '1.2rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div className="glass-panel slide-in-right" style={{ position: 'absolute', right: '1rem', top: '4rem', bottom: '1rem', width: '280px', zIndex: 1000, borderRadius: 'var(--radius-lg)', padding: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h3 style={{ margin: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Network size={18} color="#60a5fa" /> Workspace Map</h3>
-                            <button onClick={() => setShowSidebar(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X size={20} /></button>
+                            <h3 style={{ margin: 0, fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-1)' }}><Network size={16} color="#60a5fa" /> Workspace Map</h3>
+                            <button onClick={() => setShowSidebar(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-2)', cursor: 'pointer', display: 'flex', padding: '0.25rem' }}><X size={18} /></button>
                         </div>
                         <PageTree nodeId="page:page" map={workspaceMap} onSelect={(id: any) => editor?.setCurrentPage(id)} currentId={editor?.getCurrentPageId() || ""} />
                     </div>
                 )}
 
-                {showProfile && <ProfileOverlay profile={profile} setProfile={setProfile} onSave={handleUpdateProfile} onClose={() => setShowProfile(false)} />}
-
-                {/* Knowledge Sidebar Trigger (if material exists but closed) */}
+                {/* Knowledge pull-tab */}
                 {hasMaterial && !showKnowledgeSidebar && (
-                    <button
-                        onClick={() => setShowKnowledgeSidebar(true)}
-                        style={{ position: 'absolute', right: '2rem', top: '50%', transform: 'translateY(-50%)', background: '#3b82f6', color: 'white', border: 'none', padding: '1rem 0.5rem', borderRadius: '1rem 0 0 1rem', cursor: 'pointer', zIndex: 500, boxShadow: '-5px 0 20px rgba(59,130,246,0.3)' }}
-                    >
-                        <BookOpen size={20} />
+                    <button onClick={() => setShowKnowledgeSidebar(true)} style={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', background: 'var(--accent)', color: 'white', border: 'none', padding: '1rem 0.5rem', borderRadius: 'var(--radius-lg) 0 0 var(--radius-lg)', cursor: 'pointer', zIndex: 500, boxShadow: '-6px 0 20px rgba(59,130,246,0.3)' }}>
+                        <BookOpen size={18} />
                     </button>
                 )}
 
-                {/* Circle Glow Overlay */}
-                {glowCircle && (
-                    <div style={{
-                        position: 'fixed',
-                        left: glowCircle.x,
-                        top: glowCircle.y,
-                        width: glowCircle.w,
-                        height: glowCircle.h,
-                        borderRadius: '50%',
-                        border: '3px solid #60a5fa',
-                        boxShadow: '0 0 20px #60a5fa, 0 0 50px rgba(96,165,250,0.5), inset 0 0 30px rgba(96,165,250,0.15)',
-                        animation: 'circleGlow 1s ease-in-out forwards',
-                        pointerEvents: 'none',
-                        zIndex: 99999,
-                        background: 'rgba(96,165,250,0.04)',
-                    }} />
-                )}
+                {showProfile && <ProfileOverlay profile={profile} setProfile={setProfile} onSave={handleUpdateProfile} onClose={() => setShowProfile(false)} />}
+
+                {/* ── MOBILE BAR ─────────────────────────────────── */}
+                <div className="mobile-bar">
+                    {/* Chat input row */}
+                    <div className="mobile-input-row">
+                        <input
+                            ref={mobileInputRef}
+                            className="mobile-input"
+                            value={mobileInput}
+                            onChange={e => setMobileInput(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') handleMobileSubmit(); }}
+                            placeholder={isLoading ? 'AI is thinking…' : 'Ask EduGen anything…'}
+                            disabled={isLoading}
+                        />
+                        <button
+                            onClick={handleMobileSubmit}
+                            disabled={isLoading || !mobileInput.trim()}
+                            className="mobile-send-btn"
+                        >
+                            {isLoading ? <Sparkles size={18} className="pulse" color="white" /> : <Send size={18} color="white" />}
+                        </button>
+                    </div>
+
+                    {/* Tool row */}
+                    <div className="mobile-tool-row">
+                        {tools.map(t => (
+                            <button key={t.id} onClick={() => setTool(t.id)} className={`mobile-tool-btn${activeTool === t.id ? ' active' : ''}`}>
+                                {t.icon}
+                                <span className="label">{t.label}</span>
+                            </button>
+                        ))}
+                        <button onClick={() => editor?.undo()} className="mobile-tool-btn">
+                            <RotateCcw size={18} /><span className="label">Undo</span>
+                        </button>
+                        <button onClick={() => editor?.redo()} className="mobile-tool-btn">
+                            <RotateCw size={18} /><span className="label">Redo</span>
+                        </button>
+                        <button onClick={addPage} className="mobile-tool-btn">
+                            <PlusCircle size={18} /><span className="label">Page</span>
+                        </button>
+                        <button onClick={() => setShowSidebar(!showSidebar)} className={`mobile-tool-btn${showSidebar ? ' active' : ''}`}>
+                            <History size={18} /><span className="label">Map</span>
+                        </button>
+                        <button onClick={() => { if (hasMaterial) setShowKnowledgeSidebar(!showKnowledgeSidebar); else document.getElementById('kb-input')?.click(); }} className={`mobile-tool-btn${hasMaterial ? ' active' : ''}`}>
+                            <span style={{ fontSize: '16px', lineHeight: 1 }}>{hasMaterial ? '🧠' : '📎'}</span>
+                            <span className="label">{hasMaterial ? 'KB' : 'Upload'}</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            {/* NEW: Knowledge Sidebar (Fixed side block) */}
+            {/* ── Knowledge Sidebar (desktop: right panel) ──── */}
             {showKnowledgeSidebar && (
                 <KnowledgeSidebar
                     content={uploadedFileContent}
@@ -852,92 +905,6 @@ export default function Chat() {
                     onBrief={(txt: string) => handlePromptSubmit(`Please brief this topic from my material: ${txt}`, 100, 100)}
                 />
             )}
-
-            {/* ─── MOBILE ONLY: Bottom Toolbar ──────────────────────────── */}
-                {isMobile && (
-                    <div style={{
-                        position: 'absolute', bottom: 0, left: 0, right: 0,
-                        zIndex: 1001, display: 'flex', flexDirection: 'column', gap: 0,
-                    }}>
-                        {/* Mobile Chat Input */}
-                        <div style={{
-                            display: 'flex', alignItems: 'center', gap: '0.5rem',
-                            padding: '0.6rem 0.8rem',
-                            background: 'rgba(15, 23, 42, 0.97)',
-                            borderTop: '1px solid rgba(59,130,246,0.25)',
-                        }}>
-                            <input
-                                ref={mobileInputRef}
-                                value={mobileInput}
-                                onChange={e => setMobileInput(e.target.value)}
-                                onKeyDown={e => { if (e.key === 'Enter') handleMobileSubmit(); }}
-                                placeholder={isLoading ? 'AI is thinking...' : 'Ask EduGen anything...'}
-                                disabled={isLoading}
-                                style={{
-                                    flex: 1, background: 'rgba(30,41,59,0.8)', border: '1px solid rgba(59,130,246,0.3)',
-                                    borderRadius: '2rem', padding: '0.7rem 1rem', color: 'white', outline: 'none',
-                                    fontSize: '0.95rem', caretColor: '#60a5fa',
-                                }}
-                            />
-                            <button
-                                onClick={handleMobileSubmit}
-                                disabled={isLoading || !mobileInput.trim()}
-                                style={{
-                                    background: isLoading ? '#334155' : '#3b82f6',
-                                    border: 'none', borderRadius: '50%', width: '44px', height: '44px',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    cursor: isLoading ? 'not-allowed' : 'pointer', flexShrink: 0,
-                                    boxShadow: isLoading ? 'none' : '0 0 12px rgba(59,130,246,0.5)',
-                                    transition: 'all 0.2s',
-                                }}
-                            >
-                                {isLoading ? <Sparkles size={18} className="pulse" color="white" /> : <Send size={18} color="white" />}
-                            </button>
-                        </div>
-
-                        {/* Mobile Tool Row */}
-                        <div style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-                            padding: '0.5rem 0.5rem 0.75rem',
-                            background: 'rgba(15, 23, 42, 0.98)',
-                            borderTop: '1px solid rgba(255,255,255,0.06)',
-                            paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))',
-                        }}>
-                            {[
-                                { id: 'select', icon: <ArrowLeft style={{ transform: 'rotate(135deg)' }} size={20} />, label: 'Select' },
-                                { id: 'draw', icon: <Sparkles size={20} />, label: 'Draw' },
-                                { id: 'text', icon: <span style={{ fontWeight: 900, fontSize: '16px' }}>T</span>, label: 'Text' },
-                                { id: 'eraser', icon: <Trash2 size={20} />, label: 'Erase' },
-                            ].map(tool => (
-                                <button
-                                    key={tool.id}
-                                    onClick={() => setTool(tool.id)}
-                                    style={{
-                                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
-                                        background: activeTool === tool.id ? 'rgba(59,130,246,0.85)' : 'rgba(255,255,255,0.04)',
-                                        border: activeTool === tool.id ? '1px solid rgba(96,165,250,0.7)' : '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '0.8rem', padding: '0.5rem 0.9rem', cursor: 'pointer',
-                                        color: activeTool === tool.id ? 'white' : '#94a3b8',
-                                        transition: 'all 0.18s', minWidth: '56px',
-                                        boxShadow: activeTool === tool.id ? '0 2px 12px rgba(59,130,246,0.4)' : 'none',
-                                    }}
-                                >
-                                    {tool.icon}
-                                    <span style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.03em', textTransform: 'uppercase' }}>{tool.label}</span>
-                                </button>
-                            ))}
-                            <button onClick={() => editor?.undo()} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.8rem', padding: '0.5rem 0.7rem', cursor: 'pointer', color: '#94a3b8', minWidth: '44px' }}>
-                                <RotateCcw size={20} /><span style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase' }}>Undo</span>
-                            </button>
-                            <button onClick={() => editor?.redo()} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.8rem', padding: '0.5rem 0.7rem', cursor: 'pointer', color: '#94a3b8', minWidth: '44px' }}>
-                                <RotateCw size={20} /><span style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase' }}>Redo</span>
-                            </button>
-                            <button onClick={() => { const id = 'page:' + Date.now().toString(36); editor?.createPage({ name: `Note ${editor.getPages().length + 1}`, id: (id as any) }); editor?.setCurrentPage((id as any)); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.8rem', padding: '0.5rem 0.7rem', cursor: 'pointer', color: '#94a3b8', minWidth: '44px' }}>
-                                <PlusCircle size={20} /><span style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase' }}>Page</span>
-                            </button>
-                        </div>
-                    </div>
-                )}
 
             <style>{`
                 @keyframes circleGlow {
