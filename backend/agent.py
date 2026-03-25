@@ -98,13 +98,30 @@ def safe_llm_invoke(messages, temperature=0.3, category="THINK"):
     raise Exception(f"All providers ({category} + FAILOVER) exhausted.")
 
 def get_google_key():
-    """Helper to find specifically a Google key (AIza) for embeddings."""
+    """Helper to find specifically a Google key for embeddings."""
+    # 1. Check direct environment variables first
+    for env_name in ["GOOGLE_API_KEY", "GEMINI_API_KEY"]:
+        val = os.environ.get(env_name)
+        if val: return val
+    
+    # 2. Check pools for keys starting with AIza
     for pool in ["THINK", "SEARCH", "FAILOVER"]:
         for key in KEY_POOLS.get(pool, []):
-            if key.startswith("AIza"): return key
-    return os.environ.get("GOOGLE_API_KEY")
+            if key and str(key).startswith("AIza"): return key
+            
+    return None
 
-embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001", google_api_key=get_google_key())
+_google_key = get_google_key()
+try:
+    if _google_key:
+        embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001", google_api_key=_google_key)
+    else:
+        print("⚠️ No Google API Key found. Embeddings (RAG) will be disabled.")
+        embeddings = None
+except Exception as e:
+    print(f"⚠️ Error initializing embeddings: {e}")
+    embeddings = None
+
 search_tool = DuckDuckGoSearchRun()
 
 # ── RAG Store (PGVector — Cloud Persistent) ─────────────────────────────────
@@ -119,7 +136,7 @@ def _use_pgvector():
 
 def get_vector_store(page_id: str):
     """Get or create a PGVector store for a specific page."""
-    if not _use_pgvector():
+    if not _use_pgvector() or embeddings is None:
         return None
     
     if page_id in _vector_stores:
