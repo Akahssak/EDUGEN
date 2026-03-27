@@ -15,16 +15,16 @@ def get_db():
         db.close()
 
 class CreateWorkspaceRequest(BaseModel):
-    user_id: str
+    user_id: int
     name: str
 
 class SaveCanvasRequest(BaseModel):
     workspace_id: int
     data: str # JSON string
 
-@router.post("/workspaces/create")
+@router.post("/workspaces")
 def create_workspace(request: CreateWorkspaceRequest, db: Session = Depends(get_db)):
-    ws = Workspace(user_id=int(request.user_id), name=request.name)
+    ws = Workspace(user_id=request.user_id, name=request.name)
     db.add(ws)
     db.commit()
     db.refresh(ws)

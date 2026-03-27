@@ -21,4 +21,5 @@ COPY backend/ .
 EXPOSE 8000
 
 # Start the FastAPI server using Uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Using sh -c to expand the $PORT environment variable
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port $PORT"]
