@@ -43,7 +43,7 @@ const Landing: React.FC = () => {
 
       {/* ── Navigation ───────────────────────────────────────────── */}
       <nav className="relative z-50 flex items-center justify-between px-6 py-6 md:px-12">
-        <EduGenLogo size="md" />
+        <EduGenLogo size="md" className="hidden md:flex" />
         <div className="hidden md:flex items-center gap-8">
           <a href="#features" className="text-sm font-medium text-text-muted hover:text-white transition-colors">Features</a>
           <a href="#docs" className="text-sm font-medium text-text-muted hover:text-white transition-colors">Documentation</a>
