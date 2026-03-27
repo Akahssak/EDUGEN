@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { login } from '../redux/slices/authSlice';
 import { GoogleLogin } from '@react-oauth/google';
-import axios from 'axios';
+import api from '../services/api';
 import { motion } from 'framer-motion';
 import { Sparkles, Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react';
 import EduGenLogo from '../components/ui/EduGenLogo';
@@ -25,7 +25,7 @@ export default function Login() {
         setLoading(true);
         setError('');
         try {
-            const res = await axios.post(`${(import.meta as any).env.VITE_API_URL}/api/auth/google`, {
+            const res = await api.post('/api/auth/google', {
                 token: credentialResponse.credential
             });
             dispatch(login(res.data));
@@ -57,7 +57,7 @@ export default function Login() {
             : { email: formData.email, password: formData.password, username: formData.name };
 
         try {
-            const res = await axios.post(`${(import.meta as any).env.VITE_API_URL}${endpoint}`, payload);
+            const res = await api.post(endpoint, payload);
             dispatch(login(res.data));
         } catch (err: any) {
             setError(err.response?.data?.detail || "Authentication failed. Check your credentials.");

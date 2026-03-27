@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { Send, Sparkles, X, PlusCircle, RotateCcw, RotateCw, ArrowLeft, LayoutGrid, User as UserIcon, RefreshCw, Library, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../redux/slices/authSlice';
 import { setIsLoading } from '../redux/slices/chatSlice';
@@ -83,6 +83,7 @@ function resolveCollisions(editor: any, padding = 30) {
 
 export default function Chat({ onLogout }: any) {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const dispatch = useDispatch();
     const user = useSelector((state: any) => state.auth.user);
     const isLoading = useSelector((state: any) => state.chat.isLoading);
@@ -109,7 +110,7 @@ export default function Chat({ onLogout }: any) {
     const suppressPollRef = useRef(false);
     const sessionId = useRef(user?.id || Date.now().toString()).current;
 
-    // Workspace & Profile Loading
+    // Workspace & Profile Loading — reads ?ws= from URL
     useEffect(() => {
         if (!user) return;
         const fetchData = async () => {
@@ -119,12 +120,19 @@ export default function Chat({ onLogout }: any) {
                     api.get(`/api/profile/me`)
                 ]);
                 setWorkspaces(wsRes.data);
-                if (wsRes.data.length > 0) setCurrentWs(wsRes.data[0]);
+                // Pick the workspace from URL param, or fall back to first
+                const wsId = searchParams.get('ws');
+                if (wsId && wsRes.data.length > 0) {
+                    const found = wsRes.data.find((w: any) => String(w.id) === wsId);
+                    setCurrentWs(found || wsRes.data[0]);
+                } else if (wsRes.data.length > 0) {
+                    setCurrentWs(wsRes.data[0]);
+                }
                 setProfile(profRes.data);
             } catch (err) { console.error("Data fetch failed", err); }
         };
         fetchData();
-    }, [user]);
+    }, [user, searchParams]);
 
     // UI Tool list
     const tools = [
@@ -187,9 +195,17 @@ export default function Chat({ onLogout }: any) {
         } catch (e) { console.error("Upload failed", e); }
     };
 
-    // Guard: Redirect if no workspace
-    useEffect(() => { if (!currentWs && !isLoading) navigate('/dashboard'); }, [currentWs, navigate]);
-    if (!currentWs) return null;
+    // Show loading while workspace data is being fetched
+    if (!currentWs) {
+        return (
+            <div className="flex h-screen w-full bg-bg-void items-center justify-center text-text-muted font-body">
+                <div className="text-center">
+                    <div className="w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-sm">Loading workspace...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-screen w-full bg-bg-void overflow-hidden text-text-primary font-body grain selection:bg-accent-primary/30 selection:text-white">

@@ -46,6 +46,8 @@ const Dashboard: React.FC = () => {
         user_id: user.id
       });
       setWorkspaces([res.data, ...workspaces]);
+      // Navigate to the newly created workspace
+      navigate(`/chat?ws=${res.data.id}`);
     } catch (err) {
       console.error("Failed to create workspace", err);
       alert("Failed to create workspace. Please try again.");
@@ -109,15 +111,15 @@ const Dashboard: React.FC = () => {
       </aside>
 
       {/* ── Main Content ────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto relative z-10 px-6 py-12 md:px-12">
-        {/* Background Blobs (Drifting) */}
-        <div className="blob bg-accent-primary/10 -top-48 -right-48" />
-        <div className="blob bg-accent-secondary/10 bottom-0 -left-48" style={{ animationDelay: '-8s' }} />
+      <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 px-4 sm:px-6 py-8 pb-28 lg:pb-12 md:px-12">
+        {/* Background Blobs — hidden on small screens to prevent overflow */}
+        <div className="blob bg-accent-primary/10 -top-48 -right-48 hidden sm:block" />
+        <div className="blob bg-accent-secondary/10 bottom-0 -left-48 hidden sm:block" style={{ animationDelay: '-8s' }} />
 
         <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
           <div>
-            <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">Your Workspaces</h1>
-            <p className="text-text-muted">Good evening, <span className="text-text-primary capitalize">{user?.username || 'Learner'}</span>. Ready to dive deep?</p>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-2">Your Workspaces</h1>
+            <p className="text-text-muted text-sm">Good evening, <span className="text-text-primary capitalize">{user?.username || 'Learner'}</span>. Ready to dive deep?</p>
           </div>
           
           <div className="relative group w-full md:w-80">
@@ -133,7 +135,7 @@ const Dashboard: React.FC = () => {
         </header>
 
         {/* Workspace Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 relative z-10">
           {loading ? (
             Array(3).fill(0).map((_, i) => (
               <div key={i} className="h-48 rounded-2xl bg-bg-surface/30 animate-pulse border border-border-subtle" />
@@ -183,24 +185,24 @@ const Dashboard: React.FC = () => {
         </div>
       </main>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 lg:hidden bg-bg-surface/90 backdrop-blur-2xl border-t border-border-subtle z-50 px-6 py-4 flex items-center justify-around">
-        <button className="flex flex-col items-center gap-1 text-accent-primary">
-          <LayoutGrid size={24} />
-          <span className="text-[10px] font-bold uppercase">Workspaces</span>
+      {/* Mobile Bottom Nav — fixed, with safe area padding */}
+      <nav className="fixed bottom-0 left-0 right-0 lg:hidden bg-bg-surface/95 backdrop-blur-2xl border-t border-border-subtle z-50 px-4 py-3 flex items-center justify-around safe-area-bottom">
+        <button onClick={() => navigate('/dashboard')} className="flex flex-col items-center gap-1 text-accent-primary min-w-[48px] min-h-[44px] justify-center">
+          <LayoutGrid size={22} />
+          <span className="text-[10px] font-bold uppercase">Spaces</span>
         </button>
         <button 
           onClick={handleCreateWorkspace}
-          className="w-12 h-12 bg-accent-primary rounded-full flex items-center justify-center -translate-y-6 shadow-lg shadow-accent-primary/40 border-4 border-bg-void active:scale-90 transition-transform"
+          className="w-14 h-14 bg-accent-primary rounded-full flex items-center justify-center -translate-y-4 shadow-lg shadow-accent-primary/40 border-4 border-bg-void active:scale-90 transition-transform"
         >
-          <Plus size={28} className="text-white" />
+          <Plus size={26} className="text-white" />
         </button>
-        <button className="flex flex-col items-center gap-1 text-text-muted" onClick={() => navigate('/chat')}>
-          <UserIcon size={24} />
+        <button onClick={() => navigate('/chat')} className="flex flex-col items-center gap-1 text-text-muted min-w-[48px] min-h-[44px] justify-center">
+          <UserIcon size={22} />
           <span className="text-[10px] font-bold uppercase">Chat</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-text-muted" onClick={onLogout}>
-          <LogOut size={24} />
+        <button onClick={onLogout} className="flex flex-col items-center gap-1 text-text-muted min-w-[48px] min-h-[44px] justify-center">
+          <LogOut size={22} />
           <span className="text-[10px] font-bold uppercase">Exit</span>
         </button>
       </nav>
