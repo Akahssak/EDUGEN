@@ -233,8 +233,13 @@ export default function Chat({ onLogout }: any) {
 
             <main className="flex-1 relative bg-bg-void z-10 flex flex-col min-w-0">
                 <header className="absolute top-0 left-0 right-0 z-20 px-6 py-4 flex items-center justify-between pointer-events-none">
-                    <div className="px-4 py-2 bg-bg-surface/70 backdrop-blur-xl border border-border-subtle rounded-full text-xs font-bold text-text-muted flex items-center gap-2 pointer-events-auto shadow-xl">
-                        <LayoutGrid size={14} className="text-accent-primary" /> {editor?.getCurrentPage()?.name || 'Main Board'}
+                    <div className="flex items-center gap-2 pointer-events-auto">
+                        <button onClick={() => navigate('/dashboard')} className="p-2 lg:hidden bg-bg-surface/70 backdrop-blur-xl border border-border-subtle rounded-full text-text-muted hover:text-white shadow-xl transition-all">
+                            <ArrowLeft size={16} />
+                        </button>
+                        <div className="px-4 py-2 bg-bg-surface/70 backdrop-blur-xl border border-border-subtle rounded-full text-xs font-bold text-text-muted flex items-center gap-2 shadow-xl">
+                            <LayoutGrid size={14} className="text-accent-primary" /> {editor?.getCurrentPage()?.name || 'Main Board'}
+                        </div>
                     </div>
                     <div className="flex gap-2 pointer-events-auto">
                         {isLoading && <AgentThinkingIndicator />}
@@ -279,7 +284,7 @@ export default function Chat({ onLogout }: any) {
                             />
                             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-accent-primary"><Sparkles size={22} /></div>
                             <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                <GlowButton onClick={() => handlePromptSubmit(mobileInput, 100, 100)} disabled={isLoading} className="!px-5 !py-1.5 text-xs">Send</GlowButton>
+                                <GlowButton onClick={() => handlePromptSubmit(mobileInput, editor?.getViewportPageBounds()?.midX || 0, editor?.getViewportPageBounds()?.midY || 0)} disabled={isLoading} className="!px-5 !py-1.5 text-xs">Send</GlowButton>
                             </div>
                         </div>
                     </div>

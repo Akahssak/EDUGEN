@@ -40,7 +40,7 @@ export default function KnowledgeSidebar({ content, metadata, onClose, scrollToP
             animate={{ x: 0 }}
             exit={{ x: 450 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="w-[450px] bg-bg-surface/80 border-l border-border-subtle backdrop-blur-3xl z-40 flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.5)] h-full h-screen fixed top-0 right-0 md:relative"
+            className="w-[100vw] md:w-[450px] bg-bg-surface/80 border-l border-border-subtle backdrop-blur-3xl z-40 flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.5)] h-full fixed top-0 right-0 md:relative"
         >
             <div className="p-6 border-b border-border-subtle bg-bg-surface/20 flex items-center justify-between">
                 <div>
