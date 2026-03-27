@@ -143,9 +143,10 @@ const Dashboard: React.FC = () => {
               <GlassCard 
                 key={ws.id} 
                 delay={idx * 0.1}
-                className="group cursor-pointer relative overflow-hidden"
+                className="group cursor-pointer relative overflow-hidden active:scale-[0.98] transition-transform"
+                onClick={() => navigate(`/chat?ws=${ws.id}`)}
               >
-                <div onClick={() => navigate(`/chat?ws=${ws.id}`)} className="h-full flex flex-col">
+                <div className="h-full flex flex-col pointer-events-none">
                   <div className="flex items-start justify-between mb-4">
                     <div className="w-12 h-12 rounded-xl bg-accent-primary/10 flex items-center justify-center text-accent-primary group-hover:bg-accent-primary group-hover:text-white transition-all duration-500">
                       <LayoutGrid size={24} />
@@ -188,14 +189,17 @@ const Dashboard: React.FC = () => {
           <LayoutGrid size={24} />
           <span className="text-[10px] font-bold uppercase">Workspaces</span>
         </button>
-        <div className="w-12 h-12 bg-accent-primary rounded-full flex items-center justify-center -translate-y-6 shadow-lg shadow-accent-primary/40 border-4 border-bg-void">
+        <button 
+          onClick={handleCreateWorkspace}
+          className="w-12 h-12 bg-accent-primary rounded-full flex items-center justify-center -translate-y-6 shadow-lg shadow-accent-primary/40 border-4 border-bg-void active:scale-90 transition-transform"
+        >
           <Plus size={28} className="text-white" />
-        </div>
-        <button className="flex flex-col items-center gap-1 text-text-muted">
-          <UserIcon size={24} />
-          <span className="text-[10px] font-bold uppercase">Profile</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-text-muted">
+        <button className="flex flex-col items-center gap-1 text-text-muted" onClick={() => navigate('/chat')}>
+          <UserIcon size={24} />
+          <span className="text-[10px] font-bold uppercase">Chat</span>
+        </button>
+        <button className="flex flex-col items-center gap-1 text-text-muted" onClick={onLogout}>
           <LogOut size={24} />
           <span className="text-[10px] font-bold uppercase">Exit</span>
         </button>
